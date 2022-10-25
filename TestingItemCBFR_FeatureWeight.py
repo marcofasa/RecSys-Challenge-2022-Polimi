@@ -5,6 +5,8 @@ from Data_manager.Movielens.Movielens10MReader import Movielens10MReader
 from Evaluation.Evaluator import EvaluatorHoldout
 from Data_manager.split_functions.split_train_validation_random_holdout import split_train_in_two_percentage_global_sample
 from Recommenders.Similarity.Compute_Similarity_Python import Compute_Similarity_Python
+from datetime import datetime
+from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
 
 
 dataReader = Movielens10MReader()
@@ -18,8 +20,6 @@ URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_trai
 
 #declaring the icm matrix
 ICM_all = dataset.get_loaded_ICM_dict()["ICM_all"]
-
-
 
 #Keep the reference to the BestMAP in each phase
 Best_MAP=[]
@@ -35,65 +35,7 @@ max_length_best=15
 size_parameter=10
 
 
-#Order the best map, with the same order with the name, topk and shrink
-def order_MAP(name,MAP,shrink,topK):
-    #Check if the MAP is less than the one alredy stored and insert it at that index
-    for index in range(len(Best_MAP)):
-        if(Best_MAP[index]<MAP):
-            Best_MAP.insert(index,MAP)
-            Model_type.insert(index,name)
-            Best_Shrink.insert(index,shrink)
-            Best_topK.insert(index,topK)
-
-            #If there was an adding and the length is >15 
-            if(len(Best_MAP)>max_length_best):
-                del Best_MAP[-1]
-                del Model_type[-1]
-                del Best_Shrink[-1]
-                del Best_topK[-1]
-
-            return
-
-    #If the array lenght is not max_lenght_best, append the element
-    if(len(Best_MAP)<max_length_best):
-        Best_MAP.append(MAP)
-        Model_type.append(name)
-        Best_Shrink.append(shrink)
-        Best_topK.append(topK)
-
-
-    return
-
-
-#Write the best MAP with their name anda parameters in a textfile in the directory Testing_Results
-def save_data(phase):
-    if(phase=="Training"):
-        file= open("Testing_Results/CBFR_Best_Training.txt","w+")
-        for index in range(15):
-            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
-        file.close()
-        return
-    elif(phase=="Validation"):
-        file= open("Testing_Results/CBFR_Best_Validation.txt","w+")
-        for index in range(15):
-            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
-        file.close()
-        return
-    elif(phase=="Test"):
-        file= open("Testing_Results/CBFR_Best_Test.txt","w+")
-        for index in range(15):
-            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
-        file.close()
-        return
-
-    
-
-
-from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
-
-
 evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
-
 
 #knnn contenet filter recomennded none feature weighting
 content_recommender_none = ItemKNNCBFRecommender(URM_train,ICM_all)
@@ -121,46 +63,88 @@ x_tick_rnd_shrink.sort()
 x_tick_rnd_shrink = list(x_tick_rnd_topK)
 
 
-x_tick=[]
-results=[]
+#Order the best map, with the same order with the name, topk and shrink
+def order_MAP(name,MAP,shrink,topK):
+    #Check if the MAP is less than the one alredy stored and insert it at that index
+    for index in range(len(Best_MAP)):
+        if(Best_MAP[index]<MAP):
+            Best_MAP.insert(index,MAP)
+            Model_type.insert(index,name)
+            Best_Shrink.insert(index,shrink)
+            Best_topK.insert(index,topK)
+            #If there was an adding and the length is >15 
+            if(len(Best_MAP)>max_length_best):
+                del Best_MAP[-1]
+                del Model_type[-1]
+                del Best_Shrink[-1]
+                del Best_topK[-1]
+            return
 
-#randome search
-for topK in x_tick_rnd_topK:
-    for shrink in x_tick_rnd_shrink:
+    #If the array lenght is not max_lenght_best, append the element
+    if(len(Best_MAP)<max_length_best):
+        Best_MAP.append(MAP)
+        Model_type.append(name)
+        Best_Shrink.append(shrink)
+        Best_topK.append(topK)
+
+
+    return
+
+
+#Write the best MAP with their name anda parameters in a textfile in the directory Testing_Results
+def save_data(phase):
+    if(phase=="Training"):
+        file= open("Testing_Results/CBFR_Best_Training.txt","w+")
+        for index in range(15):
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
+        file.write("\nFinished at (Date-Time):   " + str(datetime.now().strftime("%D:  %H:%M:%S")))
+        file.close()
+        return
+    elif(phase=="Validation"):
+        file= open("Testing_Results/CBFR_Best_Validation.txt","w+")
+        for index in range(15):
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
+        file.write("\nFinished at (Date-Time):   " + str(datetime.now().strftime("%D:  %H:%M:%S")))        
+        file.close()
+        return
+    elif(phase=="Test"):
+        file= open("Testing_Results/CBFR_Best_Test.txt","w+")
+        for index in range(15):
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
+        file.write("\nFinished at (Date-Time):   " + str(datetime.now().strftime("%D:  %H:%M:%S")))
+        file.close()
+        return
+
+
+def training_phase():
+    for topK in x_tick_rnd_topK:
+        for shrink in x_tick_rnd_shrink:
+            
+        # x_tick.append("topk {}, shrink {}".format(topK, shrink))
+            
+            content_recommender_none.fit(shrink=shrink, topK=topK)
+            content_recommender_BM25.fit(shrink=shrink, topK=topK,feature_weighting="BM25")
+            content_recommender_TF_IDF.fit(shrink=shrink,topK=topK, feature_weighting="TF-IDF")
         
-        x_tick.append("topk {}, shrink {}".format(topK, shrink))
-        
-        content_recommender_none.fit(shrink=shrink, topK=topK)
-        content_recommender_BM25.fit(shrink=shrink, topK=topK,feature_weighting="BM25")
-        content_recommender_TF_IDF.fit(shrink=shrink,topK=topK, feature_weighting="TF-IDF")
-    
 
-        result_df, _ = evaluator_test.evaluateRecommender(content_recommender_none)
-        content_None_MAP.append(result_df.loc[10]["MAP"])
-        print("This is the None MAP " + str(result_df.loc[10]["MAP"]) + " with shrink term " + str(shrink) + " and topK " + str(topK))
-        order_MAP("None",result_df.loc[10]["MAP"],shrink,topK)
+            result_df, _ = evaluator_test.evaluateRecommender(content_recommender_none)
+            content_None_MAP.append(result_df.loc[10]["MAP"])
+            print("This is the None MAP " + str(result_df.loc[10]["MAP"]) + " with shrink term " + str(shrink) + " and topK " + str(topK))
+            order_MAP("None",result_df.loc[10]["MAP"],shrink,topK)
 
-        result_df, _ = evaluator_test.evaluateRecommender(content_recommender_BM25)
-        content_BM25_MAP.append(result_df.loc[10]["MAP"])
-        print("This is the BM25 MAP " + str(result_df.loc[10]["MAP"])+ " with shrink term " + str(shrink) + " and topK " + str(topK))
-        order_MAP("BM25",result_df.loc[10]["MAP"],shrink,topK)
+            result_df, _ = evaluator_test.evaluateRecommender(content_recommender_BM25)
+            content_BM25_MAP.append(result_df.loc[10]["MAP"])
+            print("This is the BM25 MAP " + str(result_df.loc[10]["MAP"])+ " with shrink term " + str(shrink) + " and topK " + str(topK))
+            order_MAP("BM25",result_df.loc[10]["MAP"],shrink,topK)
 
-        result_df, _ = evaluator_test.evaluateRecommender(content_recommender_TF_IDF)
-        content_TF_IDF_MAP.append(result_df.loc[10]["MAP"])
-        print("This is the IDF MAP " + str(result_df.loc[10]["MAP"])+ " with shrink term " + str(shrink) + " and topK " + str(topK))
-        order_MAP("TF-IDF",result_df.loc[10]["MAP"],shrink,topK)
+            result_df, _ = evaluator_test.evaluateRecommender(content_recommender_TF_IDF)
+            content_TF_IDF_MAP.append(result_df.loc[10]["MAP"])
+            print("This is the IDF MAP " + str(result_df.loc[10]["MAP"])+ " with shrink term " + str(shrink) + " and topK " + str(topK))
+            order_MAP("TF-IDF",result_df.loc[10]["MAP"],shrink,topK)
 
 
-save_data(phase="Training")        
-
-#pyplot.plot(x_tick, content_None_MAP, label="None FW")
-#pyplot.plot(x_tick, content_BM25_MAP, label="BM25")
-#pyplot.plot(x_tick, content_TF_IDF_MAP, label="IDF")   
-
-#pyplot.ylabel('Similarity')
-#pyplot.xlabel('Sorted values')
-#pyplot.legend()
-#pyplot.show()
+    save_data(phase="Training")        
+    return
 
 
 #Define the validation phase based on the best value acquired in the test phase, stored in the arrays
@@ -168,19 +152,15 @@ def validation_phase():
     
     evaluator_test = EvaluatorHoldout(URM_validation, cutoff_list=[10])
 
-
     #knnn contenet filter recomennded none feature weighting
     content_recommender_none = ItemKNNCBFRecommender(URM_validation,ICM_all)
     
-
     #knnn contenet filter recomennded BM25 feature weighting
     content_recommender_BM25 = ItemKNNCBFRecommender(URM_validation,ICM_all)
     
-
     #knnn contenet filter recomennded TF_IDF feature weighting
     content_recommender_TF_IDF = ItemKNNCBFRecommender(URM_validation,ICM_all)
     
-
     for i in range(max_length_best):
         if(Model_type[i]=="None"):
             content_recommender_none.fit(shrink=Best_Shrink[i], topK= Best_topK[i])
@@ -198,8 +178,6 @@ def validation_phase():
     save_data(phase="Validation")
     return
 
-validation_phase()
-
 
 
 #Define the testing phase, based on the training and validation phase
@@ -207,19 +185,15 @@ def testing_phase():
     
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
 
-
     #knnn contenet filter recomennded none feature weighting
     content_recommender_none = ItemKNNCBFRecommender(URM_test,ICM_all)
     
-
     #knnn contenet filter recomennded BM25 feature weighting
     content_recommender_BM25 = ItemKNNCBFRecommender(URM_test,ICM_all)
     
-
     #knnn contenet filter recomennded TF_IDF feature weighting
     content_recommender_TF_IDF = ItemKNNCBFRecommender(URM_test,ICM_all)
     
-
     for i in range(max_length_best):
         if(Model_type[i]=="None"):
             content_recommender_none.fit(shrink=Best_Shrink[i], topK= Best_topK[i])
@@ -237,4 +211,8 @@ def testing_phase():
     save_data(phase="Test")
     return
 
+
+#Invoking functions
+training_phase()
+validation_phase()
 testing_phase()
