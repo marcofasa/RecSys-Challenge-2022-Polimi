@@ -29,7 +29,7 @@ Model_type=[]
 Best_Shrink=[]
 #Keep the reference to the topK paramter sorted as the bet MAP
 Best_topK=[]
-#Parameter that declare how many of the best parameter to save
+#Parameter that declare how many of the best parameter store in the array
 max_length_best=15
 #Variable for the num of parameter for shrink and topKin the test phase
 size_parameter=10
@@ -67,8 +67,8 @@ def order_MAP(name,MAP,shrink,topK):
 
 #Write the best MAP with their name anda parameters in a textfile in the directory Testing_Results
 def save_data(phase):
-    if(phase=="Test"):
-        file= open("Testing_Results/CBFR_Best_Test.txt","w+")
+    if(phase=="Training"):
+        file= open("Testing_Results/CBFR_Best_Training.txt","w+")
         for index in range(15):
             file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
         file.close()
@@ -79,6 +79,13 @@ def save_data(phase):
             file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
         file.close()
         return
+    elif(phase=="Test"):
+        file= open("Testing_Results/CBFR_Best_Test.txt","w+")
+        for index in range(15):
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
+        file.close()
+        return
+
     
 
 
@@ -144,16 +151,16 @@ for topK in x_tick_rnd_topK:
         order_MAP("TF-IDF",result_df.loc[10]["MAP"],shrink,topK)
 
 
-save_data(phase="Test")        
+save_data(phase="Training")        
 
-pyplot.plot(x_tick, content_None_MAP, label="None FW")
-pyplot.plot(x_tick, content_BM25_MAP, label="BM25")
-pyplot.plot(x_tick, content_TF_IDF_MAP, label="IDF")   
+#pyplot.plot(x_tick, content_None_MAP, label="None FW")
+#pyplot.plot(x_tick, content_BM25_MAP, label="BM25")
+#pyplot.plot(x_tick, content_TF_IDF_MAP, label="IDF")   
 
-pyplot.ylabel('Similarity')
-pyplot.xlabel('Sorted values')
-pyplot.legend()
-pyplot.show()
+#pyplot.ylabel('Similarity')
+#pyplot.xlabel('Sorted values')
+#pyplot.legend()
+#pyplot.show()
 
 
 #Define the validation phase based on the best value acquired in the test phase, stored in the arrays
@@ -174,7 +181,7 @@ def validation_phase():
     content_recommender_TF_IDF = ItemKNNCBFRecommender(URM_validation,ICM_all)
     
 
-    for i in range(len(Best_MAP)):
+    for i in range(max_length_best):
         if(Model_type[i]=="None"):
             content_recommender_none.fit(shrink=Best_Shrink[i], topK= Best_topK[i])
             result_df, _ = evaluator_test.evaluateRecommender(content_recommender_none)
@@ -195,56 +202,39 @@ validation_phase()
 
 
 
+#Define the testing phase, based on the training and validation phase
+def testing_phase():
+    
+    evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
 
 
+    #knnn contenet filter recomennded none feature weighting
+    content_recommender_none = ItemKNNCBFRecommender(URM_test,ICM_all)
+    
 
+    #knnn contenet filter recomennded BM25 feature weighting
+    content_recommender_BM25 = ItemKNNCBFRecommender(URM_test,ICM_all)
+    
 
+    #knnn contenet filter recomennded TF_IDF feature weighting
+    content_recommender_TF_IDF = ItemKNNCBFRecommender(URM_test,ICM_all)
+    
 
+    for i in range(max_length_best):
+        if(Model_type[i]=="None"):
+            content_recommender_none.fit(shrink=Best_Shrink[i], topK= Best_topK[i])
+            result_df, _ = evaluator_test.evaluateRecommender(content_recommender_none)
+            order_MAP("None",result_df.loc[10]["MAP"],Best_Shrink[i], Best_topK[i])
+        elif(Model_type[i]=="BM25"):
+            content_recommender_BM25.fit(shrink=Best_Shrink[i], topK=Best_topK[i],feature_weighting="BM25")
+            result_df, _ = evaluator_test.evaluateRecommender(content_recommender_BM25)
+            order_MAP("BM25",result_df.loc[10]["MAP"],Best_Shrink[i], Best_topK[i])
+        elif(Model_type[i]=="TF-IDF"):
+            content_recommender_TF_IDF.fit(shrink=Best_Shrink[i],topK= Best_topK[i], feature_weighting="TF-IDF")
+            result_df, _ = evaluator_test.evaluateRecommender(content_recommender_TF_IDF)
+            order_MAP("TF-IDF",result_df.loc[10]["MAP"],Best_Shrink[i], Best_topK[i])
 
+    save_data(phase="Test")
+    return
 
-
-
-
-
-
-
-
-
-
-
-#Lets have a look at how the reccomandation are distribuetded
-def recommandations_distribution():
-    x_tick = np.arange(URM_all.shape[1])
-    counter_None = np.zeros(URM_all.shape[1])
-    counter_BM25 = np.zeros(URM_all.shape[1])
-    counter_TF_IDF = np.zeros(URM_all.shape[1])
-
-    for user_id in range(URM_all.shape[0]):
-        recs = content_recommender_none.recommend(user_id)[:10]
-        counter_None[recs] += 1
-        
-        recs = content_recommender_BM25.recommend(user_id)[:10]
-        counter_BM25[recs] += 1
-
-        recs = content_recommender_TF_IDF.recommend(user_id)[:10]
-        counter_TF_IDF[recs] += 1
-        
-        if user_id % 10000 == 0:
-            print("Recommended to user {}/{}".format(user_id, URM_all.shape[0]))
-
-
-
-    sorted_items = np.argsort(-counter_None)
-        
-    pyplot.plot(x_tick, counter_None[sorted_items], label = "None")
-    pyplot.plot(x_tick, counter_BM25[sorted_items], label = "BM25")
-    pyplot.plot(x_tick, counter_TF_IDF[sorted_items], label = "BM25")
-
-    pyplot.ylabel('Number of recommendations')
-    pyplot.xlabel('Items')
-    pyplot.legend()
-    pyplot.show()
-
-
-#call the reccomandations distribution
-#recommandations_distribution()
+testing_phase()
