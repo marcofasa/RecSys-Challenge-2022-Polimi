@@ -1,0 +1,15 @@
+0.  MAP: 0.05034937382733957    Name: BM25     Shrink: 410   topK: 410
+1.  MAP: 0.04985584942112447    Name: None     Shrink: 410   topK: 190
+2.  MAP: 0.04958483841941548    Name: BM25     Shrink: 410   topK: 335
+3.  MAP: 0.0495691360652381    Name: None     Shrink: 410   topK: 50
+4.  MAP: 0.04945785974996632    Name: None     Shrink: 335   topK: 50
+5.  MAP: 0.0493999592731366    Name: None     Shrink: 410   topK: 48
+6.  MAP: 0.04925315212494691    Name: None     Shrink: 335   topK: 48
+7.  MAP: 0.049175034888433805    Name: None     Shrink: 410   topK: 29
+8.  MAP: 0.04891839994596875    Name: None     Shrink: 410   topK: 335
+9.  MAP: 0.04880591842484428    Name: None     Shrink: 410   topK: 410
+10.  MAP: 0.04880365127345752    Name: None     Shrink: 335   topK: 190
+11.  MAP: 0.04869882451497803    Name: BM25     Shrink: 335   topK: 410
+12.  MAP: 0.04858433962337072    Name: BM25     Shrink: 410   topK: 190
+13.  MAP: 0.04825781638529526    Name: None     Shrink: 410   topK: 95
+14.  MAP: 0.047926893577366604    Name: BM25     Shrink: 335   topK: 335
