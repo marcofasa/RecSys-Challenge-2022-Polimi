@@ -31,6 +31,9 @@ Best_Shrink=[]
 Best_topK=[]
 #Parameter that declare how many of the best parameter to save
 max_length_best=15
+#Variable for the num of parameter for shrink and topKin the test phase
+size_parameter=10
+
 
 #Order the best map, with the same order with the name, topk and shrink
 def order_MAP(name,MAP,shrink,topK):
@@ -102,11 +105,11 @@ content_TF_IDF_MAP = []
 from scipy.stats import loguniform
 
 
-x_tick_rnd_topK = loguniform.rvs(10, 500, size=10).astype(int)
+x_tick_rnd_topK = loguniform.rvs(10, 500, size=size_parameter).astype(int)
 x_tick_rnd_topK.sort()
 x_tick_rnd_topK = list(x_tick_rnd_topK)
 
-x_tick_rnd_shrink = loguniform.rvs(10, 500, size=10).astype(int)
+x_tick_rnd_shrink = loguniform.rvs(10, 500, size=size_parameter).astype(int)
 x_tick_rnd_shrink.sort()
 x_tick_rnd_shrink = list(x_tick_rnd_topK)
 

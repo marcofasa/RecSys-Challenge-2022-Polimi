@@ -30,7 +30,8 @@ Best_Shrink=[]
 Best_topK=[]
 #Parameter that declare how many of the best parameter to save
 max_length_best=15
-
+#Variable for the num of parameter for shrink and topKin the test phase
+size_parameter=10
 
 #Order the best map, with the same order with the name, topk and shrink
 def order_MAP(name,MAP,shrink,topK):
@@ -63,13 +64,19 @@ def order_MAP(name,MAP,shrink,topK):
 
 
 #Write the best MAP with their name and parameters in a textfile in the directory Testing_Results
-def save_data():
-    file= open("Testing_Results/CF_Best.txt","w+")
-
-    for index in range(15):
-        file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
-    file.close()
-    return
+def save_data(phase):
+    if(phase=="Test"):
+        file= open("Testing_Results/CF_Best_Test.txt","w+")
+        for index in range(15):
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
+        file.close()
+        return
+    elif(phase=="Validation"):
+        file= open("Testing_Results/CF_Best_Validation.txt","w+")
+        for index in range(15):
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
+        file.close()
+        return
 
 
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
@@ -94,11 +101,11 @@ collaborative_TF_IDF_MAP = []
 #random search with the log uniform 
 from scipy.stats import loguniform
 
-x_tick_rnd_topK = loguniform.rvs(10, 500, size=4).astype(int)
+x_tick_rnd_topK = loguniform.rvs(10, 500, size=size_parameter).astype(int)
 x_tick_rnd_topK.sort()
 x_tick_rnd_topK = list(x_tick_rnd_topK)
 
-x_tick_rnd_shrink = loguniform.rvs(10, 500, size=4).astype(int)
+x_tick_rnd_shrink = loguniform.rvs(10, 500, size=size_parameter).astype(int)
 x_tick_rnd_shrink.sort()
 x_tick_rnd_shrink = list(x_tick_rnd_topK)
 
@@ -181,57 +188,3 @@ def validation_phase():
 validation_phase()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Lets have a look at how the reccomandation are distribuetded
-def recommandations_distribution():
-    x_tick = np.arange(URM_all.shape[1])
-    counter_None = np.zeros(URM_all.shape[1])
-    counter_BM25 = np.zeros(URM_all.shape[1])
-    counter_TF_IDF = np.zeros(URM_all.shape[1])
-
-    for user_id in range(URM_all.shape[0]):
-        recs = collaborative_recommender_none.recommend(user_id)[:10]
-        counter_None[recs] += 1
-        
-        recs = collaborative_recommender_BM25.recommend(user_id)[:10]
-        counter_BM25[recs] += 1
-
-        recs = collaborative_recommender_TF_IDF.recommend(user_id)[:10]
-        counter_TF_IDF[recs] += 1
-        
-        if user_id % 10000 == 0:
-            print("Recommended to user {}/{}".format(user_id, URM_all.shape[0]))
-
-
-
-    sorted_items = np.argsort(-counter_None)
-        
-    pyplot.plot(x_tick, counter_None[sorted_items], label = "None")
-    pyplot.plot(x_tick, counter_BM25[sorted_items], label = "BM25")
-    pyplot.plot(x_tick, counter_TF_IDF[sorted_items], label = "BM25")
-
-    pyplot.ylabel('Number of recommendations')
-    pyplot.xlabel('Items')
-    pyplot.legend()
-    pyplot.show()
-
-#recommandations_distribution()
