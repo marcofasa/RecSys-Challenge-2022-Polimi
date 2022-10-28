@@ -1,16 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as pyplot 
 import pandas as pd
+import scipy.sparse as sps
 from Data_manager.Movielens.Movielens10MReader import Movielens10MReader
 from Evaluation.Evaluator import EvaluatorHoldout
 from Data_manager.split_functions.split_train_validation_random_holdout import split_train_in_two_percentage_global_sample
 from datetime import datetime
 from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
+import os
 
 
 def load_URM():
-
-    URM_path = "/home/vittorio/Scrivania/Politecnico/RecSys/RecSys_DEPRECATED/Dataset/interactions_and_impressions.csv"
+    dirname = os.path.dirname(__file__)
+    URM_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
     URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
                                     sep=",",
                                     header=None,

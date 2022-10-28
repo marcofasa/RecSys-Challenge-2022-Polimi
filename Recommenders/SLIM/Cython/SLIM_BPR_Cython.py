@@ -73,7 +73,7 @@ class SLIM_BPR_Cython(BaseItemSimilarityMatrixRecommender, Incremental_Training_
 
 
         # Import compiled module
-        from . import SLIM_BPR_Cython_Epoch
+        from Recommenders.SLIM.Cython.SLIM_BPR_Cython_Epoch import SLIM_BPR_Cython_Epoch
 
 
 
