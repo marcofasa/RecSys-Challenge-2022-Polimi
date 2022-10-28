@@ -10,7 +10,7 @@ RecSys challenge 2020 https://www.kaggle.com/competitions/recommender-system-202
 RecSys challenge 2021 https://www.kaggle.com/competitions/recommender-system-2021-challenge-polimi/discussion/299495
 
 
-RecSys challenge 2022
+RecSys challenge 2022 https://www.kaggle.com/competitions/recommender-system-2022-challenge-polimi
 
 
 ### Colleagues past works
