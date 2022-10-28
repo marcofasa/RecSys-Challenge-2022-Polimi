@@ -238,9 +238,9 @@ Best_Shrink=[]
 #Keep the reference to the topK paramter sorted as the bet MAP
 Best_topK=[]
 #Parameter that declare how many of the best parameter store in the array
-max_length_best=25
+max_length_best=30
 #Variable for the num of parameter for shrink and topKin the test phase
-size_parameter=25
+size_parameter=30
 #Start time
 start_time=datetime.now().strftime("%D:  %H:%M:%S")
 
