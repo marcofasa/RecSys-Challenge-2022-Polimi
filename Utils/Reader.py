@@ -3,7 +3,7 @@ import pandas as pd
 import scipy.sparse as sps
 from matplotlib import pyplot
 
-from Utils.Evaluator import EvaluatorHoldout
+from Evaluation import Evaluator as EvaluatorHoldout
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", columns=None, matrix_format="csr",

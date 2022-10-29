@@ -10,46 +10,7 @@ from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
 import os
 
 
-def load_URM():
-    dirname = os.path.dirname(__file__)
-    URM_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
-    URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
-                                    sep=",",
-                                    header=None,
-                                   # dtype={0:int, 1:int, 2:str,4:int},
-                                    engine='python')  # its a way to store the data, they are sepatated by sep
 
-    URM_all_dataframe.columns = ["UserID", "ItemID", "Impression_list", "Data"]
-    print(URM_all_dataframe.head(n=10))
-    userID_unique = URM_all_dataframe["UserID"].unique()
-    itemID_unique = URM_all_dataframe["ItemID"].unique()
-    n_users = len(userID_unique)
-    n_items = len(itemID_unique)
-    n_interactions = len(URM_all_dataframe)
-
-    print("Number of items\t {}, Number of users\t {}".format(n_items, n_users))
-    print("Max ID items\t {}, Max Id users\t {}\n".format(max(itemID_unique), max(userID_unique)))
-
-    mapped_id, original_id = pd.factorize(
-    URM_all_dataframe["UserID"].unique())  # take all the unique id and delete the empty profile
-    user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
-
-    mapped_id, original_id = pd.factorize(URM_all_dataframe["ItemID"].unique())
-
-    item_original_ID_to_index = pd.Series(mapped_id, index=original_id)
-    URM_all_dataframe["UserID"] = URM_all_dataframe["UserID"].map(user_original_ID_to_index)
-    URM_all_dataframe["ItemID"] = URM_all_dataframe["ItemID"].map(item_original_ID_to_index)
-    print(URM_all_dataframe.head(n=10))
-
-
-    URM_all_dataframe["Data"][0]=0
-    URM_all = sps.coo_matrix((URM_all_dataframe["Data"].values,
-                              (URM_all_dataframe["UserID"].values,
-                               URM_all_dataframe["ItemID"].values)))  # fast format for constructing sparse matrices
-
-    print(URM_all)
-
-    return URM_all
 
 
 #Order the best map, with the same order with the name, topk and shrink
