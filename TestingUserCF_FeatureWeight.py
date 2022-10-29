@@ -3,7 +3,7 @@ import matplotlib.pyplot as pyplot
 import pandas as pd
 import scipy.sparse as sps
 from Data_manager.Movielens.Movielens10MReader import Movielens10MReader
-from Evaluation.Evaluator import EvaluatorHoldout
+from Utils.Evaluator import EvaluatorHoldout
 from Data_manager.split_functions.split_train_validation_random_holdout import split_train_in_two_percentage_global_sample
 from datetime import datetime
 from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
@@ -72,13 +72,13 @@ def save_data(phase):
 def training_phase():
     for topK in x_tick_rnd_topK:
         for shrink in x_tick_rnd_shrink:
-            
+
             #x_tick.append("topk {}, shrink {}".format(topK, shrink))
-            
+
             content_recommender_none.fit(shrink=shrink, topK=topK)
             content_recommender_BM25.fit(shrink=shrink, topK=topK, feature_weighting="BM25")
             content_recommender_TF_IDF.fit(shrink=shrink,topK=topK, feature_weighting="TF-IDF")
-        
+
 
             result_df, _ = evaluator_test.evaluateRecommender(content_recommender_none)
             content_None_MAP.append(result_df.loc[10]["MAP"])
@@ -95,7 +95,7 @@ def training_phase():
             print("This is the IDF MAP " + str(result_df.loc[10]["MAP"])+ " with shrink term " + str(shrink) + " and topK " + str(topK))
             order_MAP("TF-IDF",result_df.loc[10]["MAP"],shrink,topK)
 
-    save_data(phase="Training")        
+    save_data(phase="Training")
     return
 
 #pyplot.plot(x_tick, content_None_MAP, label="None FW")
