@@ -8,7 +8,7 @@ from Evaluation import Evaluator as EvaluatorHoldout
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", columns=None, matrix_format="csr",
                    stats=False):
-    n_items=0
+    n_items = 0
     if columns is None:
         columns = ["UserID", "ItemID", "Interaction", "Data"]
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
@@ -27,7 +27,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", colum
 
     # stats
     if stats:
-        n_items=df_stats(matrix_df)
+        n_items = df_stats(matrix_df)
 
     matrix = sps.coo_matrix((matrix_df[columns[3]].values,
                              (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
@@ -40,7 +40,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", colum
         if not stats:
             return matrix.tocsr()
         else:
-            csr_stats(matrix.tocsr(),n_items)
+            csr_stats(matrix.tocsr(), n_items)
     else:
         return matrix.tocsc()
 
@@ -59,9 +59,10 @@ def df_stats(dataframe):
     print("Average interactions per item {:.2f}\n".format(n_interactions / n_items))
 
     print("Sparsity {:.2f} %".format((1 - float(n_interactions) / (n_items * n_users)) * 100))
+    return n_items
 
 
-def csr_stats(csr,n_items):
+def csr_stats(csr, n_items):
     item_popularity = np.ediff1d(csr.tocsc().indptr)
     item_popularity = np.sort(item_popularity)
     pyplot.plot(item_popularity, 'ro')
@@ -69,7 +70,7 @@ def csr_stats(csr,n_items):
     pyplot.xlabel('Sorted Item')
     pyplot.show()
 
-    ten_percent = int(n_items/10)
+    ten_percent = int(n_items / 10)
 
     print("Average per-item interactions over the whole dataset {:.2f}".
           format(item_popularity.mean()))
@@ -80,9 +81,17 @@ def csr_stats(csr,n_items):
     print("Average per-item interactions for the least 10% popular items {:.2f}".
           format(item_popularity[:ten_percent].mean()))
 
-    #print("Average per-item interactions for the median 10% popular items {:.2f}".
-     #     format(item_popularity[int(n_items*0.45):int(n_items*0.55)].mean()))
+    # print("Average per-item interactions for the median 10% popular items {:.2f}".
+    #     format(item_popularity[int(n_items*0.45):int(n_items*0.55)].mean()))
     print("Number of items with zero interactions {}".format(np.sum(item_popularity == 0)))
+
+    user_activity = np.ediff1d(csr.tocsr().indptr)
+    user_activity = np.sort(user_activity)
+
+    pyplot.plot(user_activity, 'ro')
+    pyplot.ylabel('Num Interactions ')
+    pyplot.xlabel('Sorted User')
+    pyplot.show()
 
 
 def read_ICM_length(matrix_format="csr", clean=True):
@@ -141,8 +150,4 @@ def merge(ICM_a, ICM_b):
 def save(data, name, path="../output/"):
     data.to_csv(path + name + '.csv')
 
-
 ################
-
-
-
