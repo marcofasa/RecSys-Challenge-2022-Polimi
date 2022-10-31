@@ -1,9 +1,10 @@
 import math
-
+import sys
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
 from matplotlib import pyplot
+from tqdm import tqdm
 
 from Utils.Evaluator import EvaluatorHoldout
 
@@ -11,7 +12,7 @@ columns = ["UserID", "ItemID", "Interaction", "Data"]
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=0, display=False, saving=False,progress=False):
+                   stats=False, preprocess=0, display=False, saving=False, progress=True):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -25,16 +26,19 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # 0--> just description see interaction
     # 1--> real interaction
     matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
-    # print(matrix_df)
+    print(len(matrix_df))
+
     if preprocess > 0:
+        print("Preprocessing..")
         df_preprocess(matrix_df, saving=True, mode=preprocess)
 
     if display:
+        print("Displaying..")
         print(matrix_df.head())
 
     # stats
     if stats:
-        n_items = df_stats(matrix_df,progress)
+        n_items = df_stats(matrix_df, progress)
 
     matrix = sps.coo_matrix((matrix_df[columns[3]].values,
                              (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
@@ -52,10 +56,11 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
         return matrix.tocsc()
 
 
-def df_preprocess(df, saving=True, mode=0,progress=False):
-    for index, row in df.iterrows():
-        if progress:
-            progress_bar(index,len(df))
+def df_preprocess(df, saving=True, mode=0, progress=True):
+    for index, row in tqdm(df.iterrows(), total=len(df)):
+        # print(index)
+        print(len(df))
+
         displayList = []
         if type(row[columns[2]]) == str:
             displayList = row[columns[2]].split(",")
@@ -68,6 +73,7 @@ def df_preprocess(df, saving=True, mode=0,progress=False):
             userid = row[columns[0]]
             for item in displayList:
                 df.loc[len(df.index)] = [userid, item, None, -1]
+        # print("OKOK")
 
     if saving:
         save(df, "out_" + str(mode))
@@ -187,19 +193,8 @@ def save(data, name, path="../output/"):
     data.to_csv(path + name + '.csv')
 
 
-def progress_bar(iteration, total):
-    prefix = ''
-    suffix = ''
-    fill = '█'
-    end = "\r"
-    decimals = 1
-    length = 100
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filled = int(length * iteration // total)
-    bar = fill * filled + '-' * (length - filled)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=end)
-    # Print New Line on Complete
-    if iteration == total:
-        print()
 
 ################
+
+if __name__ == '__main__':
+    read_train_csr(preprocess=2, saving=True)
