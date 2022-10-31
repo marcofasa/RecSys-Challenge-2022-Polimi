@@ -11,7 +11,7 @@ columns = ["UserID", "ItemID", "Interaction", "Data"]
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=False, display=False, saving=False):
+                   stats=False, preprocess=0, display=False, saving=False,progress=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -26,15 +26,15 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # 1--> real interaction
     matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
     # print(matrix_df)
-    if preprocess:
-        df_preprocess(matrix_df, saving=True)
+    if preprocess > 0:
+        df_preprocess(matrix_df, saving=True, mode=preprocess)
 
     if display:
         print(matrix_df.head())
 
     # stats
     if stats:
-        n_items = df_stats(matrix_df)
+        n_items = df_stats(matrix_df,progress)
 
     matrix = sps.coo_matrix((matrix_df[columns[3]].values,
                              (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
@@ -52,23 +52,25 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
         return matrix.tocsc()
 
 
-def df_preprocess(df, saving=False,type=0):
+def df_preprocess(df, saving=True, mode=0,progress=False):
     for index, row in df.iterrows():
+        if progress:
+            progress_bar(index,len(df))
         displayList = []
         if type(row[columns[2]]) == str:
-                displayList = row[columns[2]].split(",")
-                displayList = [eval(i) for i in displayList]
+            displayList = row[columns[2]].split(",")
+            displayList = [eval(i) for i in displayList]
 
-            # counting other TV series displayed
-        if type==0:
+        # counting other TV series displayed
+        if mode == 1:
             df.loc[index, 'Displayed'] = len(displayList)  # insert to the new column
-        elif type==1:
+        elif mode == 2:
+            userid = row[columns[0]]
             for item in displayList:
-                #df.loc[len(df.index)] = [row[columns[0]], item, ,-1]
+                df.loc[len(df.index)] = [userid, item, None, -1]
 
     if saving:
-        save(df, "out")
-
+        save(df, "out_" + str(mode))
 
 
 def df_stats(dataframe):
@@ -183,5 +185,21 @@ def merge(ICM_a, ICM_b):
 
 def save(data, name, path="../output/"):
     data.to_csv(path + name + '.csv')
+
+
+def progress_bar(iteration, total):
+    prefix = ''
+    suffix = ''
+    fill = '█'
+    end = "\r"
+    decimals = 1
+    length = 100
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filled = int(length * iteration // total)
+    bar = fill * filled + '-' * (length - filled)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=end)
+    # Print New Line on Complete
+    if iteration == total:
+        print()
 
 ################
