@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
@@ -5,12 +7,12 @@ from matplotlib import pyplot
 
 from Utils.Evaluator import EvaluatorHoldout
 
+columns = ["UserID", "ItemID", "Interaction", "Data"]
 
-def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", columns=None, matrix_format="csr",
-                   stats=False):
+
+def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
+                   stats=False, preprocess=0, display=False, saving=False,progress=False):
     n_items = 0
-    if columns is None:
-        columns = ["UserID", "ItemID", "Interaction", "Data"]
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
                             skiprows=1,
@@ -24,10 +26,15 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", colum
     # 1--> real interaction
     matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
     # print(matrix_df)
+    if preprocess > 0:
+        df_preprocess(matrix_df, saving=True, mode=preprocess)
+
+    if display:
+        print(matrix_df.head())
 
     # stats
     if stats:
-        n_items = df_stats(matrix_df)
+        n_items = df_stats(matrix_df,progress)
 
     matrix = sps.coo_matrix((matrix_df[columns[3]].values,
                              (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
@@ -45,6 +52,27 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", colum
         return matrix.tocsc()
 
 
+def df_preprocess(df, saving=True, mode=0,progress=False):
+    for index, row in df.iterrows():
+        if progress:
+            progress_bar(index,len(df))
+        displayList = []
+        if type(row[columns[2]]) == str:
+            displayList = row[columns[2]].split(",")
+            displayList = [eval(i) for i in displayList]
+
+        # counting other TV series displayed
+        if mode == 1:
+            df.loc[index, 'Displayed'] = len(displayList)  # insert to the new column
+        elif mode == 2:
+            userid = row[columns[0]]
+            for item in displayList:
+                df.loc[len(df.index)] = [userid, item, None, -1]
+
+    if saving:
+        save(df, "out_" + str(mode))
+
+
 def df_stats(dataframe):
     userID_unique = dataframe["UserID"].unique()
     itemID_unique = dataframe["ItemID"].unique()
@@ -52,6 +80,7 @@ def df_stats(dataframe):
     n_users = len(userID_unique)
     n_items = len(itemID_unique)
     n_interactions = len(dataframe)
+    print("------ITEM POPULARITY------")
 
     print("Number of items\t {}, Number of users\t {}".format(n_items, n_users))
     print("Max ID items\t {}, Max Id users\t {}\n".format(max(itemID_unique), max(userID_unique)))
@@ -59,18 +88,23 @@ def df_stats(dataframe):
     print("Average interactions per item {:.2f}\n".format(n_interactions / n_items))
 
     print("Sparsity {:.2f} %".format((1 - float(n_interactions) / (n_items * n_users)) * 100))
+    print("--------------------")
+
     return n_items
 
 
 def csr_stats(csr, n_items):
     item_popularity = np.ediff1d(csr.tocsc().indptr)
     item_popularity = np.sort(item_popularity)
+    print("------ITEM POPULARITY------")
+    print(item_popularity)
     pyplot.plot(item_popularity, 'ro')
     pyplot.ylabel('Num Interactions ')
     pyplot.xlabel('Sorted Item')
     pyplot.show()
 
     ten_percent = int(n_items / 10)
+    print("------AVG PER-ITEM------")
 
     print("Average per-item interactions over the whole dataset {:.2f}".
           format(item_popularity.mean()))
@@ -81,9 +115,11 @@ def csr_stats(csr, n_items):
     print("Average per-item interactions for the least 10% popular items {:.2f}".
           format(item_popularity[:ten_percent].mean()))
 
-    # print("Average per-item interactions for the median 10% popular items {:.2f}".
-    #     format(item_popularity[int(n_items*0.45):int(n_items*0.55)].mean()))
+    print("Average per-item interactions for the median 10% popular items {:.2f}".
+          format(item_popularity[int(n_items * 0.45):int(n_items * 0.55)].mean()))
+
     print("Number of items with zero interactions {}".format(np.sum(item_popularity == 0)))
+    print("---------------------")
 
     user_activity = np.ediff1d(csr.tocsr().indptr)
     user_activity = np.sort(user_activity)
@@ -149,5 +185,21 @@ def merge(ICM_a, ICM_b):
 
 def save(data, name, path="../output/"):
     data.to_csv(path + name + '.csv')
+
+
+def progress_bar(iteration, total):
+    prefix = ''
+    suffix = ''
+    fill = '█'
+    end = "\r"
+    decimals = 1
+    length = 100
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filled = int(length * iteration // total)
+    bar = fill * filled + '-' * (length - filled)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=end)
+    # Print New Line on Complete
+    if iteration == total:
+        print()
 
 ################
