@@ -44,8 +44,7 @@ def save_data(phase):
     if (phase == "Training"):
         file = open("Testing_Results/SLIM_Best_Training.txt", "w+")
         for index in range(max_length_best):
-            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(
-                Model_type[index]) + "     Learning rate: " + str(Best_Learning_Rate[index]) + "   topK: " + str(
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "     Learning rate: " + str(Best_Learning_Rate[index]) + "   topK: " + str(
                 Best_topK[index]) +  "  lambda1 " + str(Best_Lambda1[index]) + "lamda2 " + str(Best_Lambda2[index]) + "\n")
         file.write("\nStarted at:  " + str(start_time) + "\nFinished at (Date-Time):   " + str(
             datetime.now().strftime("%D:  %H:%M:%S")))
@@ -54,8 +53,7 @@ def save_data(phase):
     elif (phase == "Validation"):
         file = open("Testing_Results/SLIM_Best_Validation.txt", "w+")
         for index in range(max_length_best):
-            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(
-                Model_type[index]) + "     Learning rate: " + str(Best_Learning_Rate[index]) + "   topK: " + str(
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) +"     Learning rate: " + str(Best_Learning_Rate[index]) + "   topK: " + str(
                 Best_topK[index]) + "  lambda1 " + str(Best_Lambda1[index]) + "lamda2 " + str(
                 Best_Lambda2[index]) + "\n")
         file.write("\nStarted at:  " + str(start_time) + "\nFinished at (Date-Time):   " + str(
@@ -65,8 +63,7 @@ def save_data(phase):
     elif (phase == "Test"):
         file = open("Testing_Results/SLIM_Best_Test.txt", "w+")
         for index in range(max_length_best):
-            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(
-                Model_type[index]) + "     Learning rate: " + str(Best_Learning_Rate[index]) + "   topK: " + str(
+            file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "     Learning rate: " + str(Best_Learning_Rate[index]) + "   topK: " + str(
                 Best_topK[index]) + "  lambda1 " + str(Best_Lambda1[index]) + "lamda2 " + str(
                 Best_Lambda2[index]) + "\n")
         file.write("\nStarted at:  " + str(start_time) + "\nFinished at (Date-Time):   " + str(
@@ -90,6 +87,8 @@ def training_phase():
 
     save_data(phase="Training")
     return
+
+
 
 
 # Define the validation phase based on the best value acquired in the test phase, stored in the arrays
@@ -150,7 +149,7 @@ Best_Lambda2 = []
 # Keep the reference to the topK paramter sorted as the bet MAP
 Best_topK = []
 # Parameter that declare how many of the best parameter to save, it will be the number of loops for the validantion and test phase
-max_length_best = 15
+max_length_best = 25
 # Variable for the num of parameter for topKin,lambda2 e lambda1 the test phase, the number of loops will be this number at the fourth
 size_parameter = 5
 # Start time

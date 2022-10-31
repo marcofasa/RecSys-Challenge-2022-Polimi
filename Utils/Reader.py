@@ -94,8 +94,8 @@ def csr_stats(csr, n_items):
     pyplot.show()
 
 
-def read_ICM_length(matrix_format="csr", clean=True):
-    df = pd.read_csv(filepath_or_buffer="../data/data_ICM_length.csv",
+def read_ICM_length(matrix_format="csr", clean=True,matrix_path="../data/data_ICM_type.csv"):
+    df = pd.read_csv(filepath_or_buffer=matrix_path,
                      sep=",",
                      skiprows=1,
                      header=None,
@@ -113,8 +113,8 @@ def read_ICM_length(matrix_format="csr", clean=True):
         return sps.csc_matrix(pd.DataFrame(data=df, columns=["EPLength"]).to_numpy())
 
 
-def read_ICM_type(matrix_format="csr", clean=True):
-    df = pd.read_csv(filepath_or_buffer="../data/data_ICM_type.csv",
+def read_ICM_type(matrix_format="csr", clean=True,matrix_path="../data/data_ICM_type.csv"):
+    df = pd.read_csv(filepath_or_buffer=matrix_path,
                      sep=",",
                      skiprows=1,
                      header=None,
