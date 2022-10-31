@@ -149,7 +149,7 @@ Best_Lambda2 = []
 # Keep the reference to the topK paramter sorted as the bet MAP
 Best_topK = []
 # Parameter that declare how many of the best parameter to save, it will be the number of loops for the validantion and test phase
-max_length_best = 25
+max_length_best = 40
 # Variable for the num of parameter for topKin,lambda2 e lambda1 the test phase, the number of loops will be this number at the fourth
 size_parameter = 5
 # Start time
