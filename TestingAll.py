@@ -32,11 +32,12 @@ def read_data_split_and_search():
         - A _best_result_test file which contains a dictionary with the results, on the test set, of the best solution chosen using the validation set
     """
 
+    import os
+    dirname = os.path.dirname(__file__)
+    matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 
 
-
-
-    URM_train, URM_test = split_train_in_two_percentage_global_sample(Reader.read_train_csr(display=True), train_percentage = 0.80)
+    URM_train, URM_test = split_train_in_two_percentage_global_sample(Reader.read_train_csr(display=True,matrix_path=matrix_path), train_percentage = 0.80)
     URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)
 
     output_folder_path = "result_experiments/"
