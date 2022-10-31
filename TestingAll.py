@@ -36,7 +36,7 @@ def read_data_split_and_search():
 
 
 
-    URM_train, URM_test = split_train_in_two_percentage_global_sample(Reader.read_train_csr(), train_percentage = 0.80)
+    URM_train, URM_test = split_train_in_two_percentage_global_sample(Reader.read_train_csr(display=True), train_percentage = 0.80)
     URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)
 
     output_folder_path = "result_experiments/"
