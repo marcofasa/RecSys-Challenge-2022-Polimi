@@ -1,0 +1,2 @@
+On recommender <class 'Recommenders.KNN.ItemKNNCFRecommender.ItemKNNCFRecommender'> Exception daemonic processes are not allowed to have children
+On recommender <class 'Recommenders.KNN.UserKNNCFRecommender.UserKNNCFRecommender'> Exception daemonic processes are not allowed to have children

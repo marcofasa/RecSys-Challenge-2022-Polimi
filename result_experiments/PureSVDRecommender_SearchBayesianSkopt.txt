@@ -1,0 +1,17 @@
+SearchBayesianSkopt: Resuming 'PureSVDRecommender' Failed, no such file exists.
+SearchBayesianSkopt: New best config found. Config 0: {'num_factors': 95} - results: PRECISION: 0.0122582, PRECISION_RECALL_MIN_DEN: 0.0259515, RECALL: 0.0252088, MAP: 0.0047850, MAP_MIN_DEN: 0.0099731, MRR: 0.0405428, NDCG: nan, F1: 0.0164953, HIT_RATE: 0.1041383, ARHR_ALL_HITS: 0.0439478, NOVELTY: 0.0042652, AVERAGE_POPULARITY: 0.2068653, DIVERSITY_MEAN_INTER_LIST: 0.8298100, DIVERSITY_HERFINDAHL: 0.9829789, COVERAGE_ITEM: 0.0254621, COVERAGE_ITEM_HIT: 0.0090586, ITEMS_IN_GT: 0.9612764, COVERAGE_USER: 0.9351414, COVERAGE_USER_HIT: 0.0973840, USERS_IN_GT: 0.9351414, DIVERSITY_GINI: 0.0044644, SHANNON_ENTROPY: 6.9689309, RATIO_DIVERSITY_HERFINDAHL: 0.9834376, RATIO_DIVERSITY_GINI: 0.0102396, RATIO_SHANNON_ENTROPY: 0.5288481, RATIO_AVERAGE_POPULARITY: 3.3837225, RATIO_NOVELTY: 0.4906204, 
+SearchBayesianSkopt: Config 0 Exception. Config: {'num_factors': 95} - Exception: Traceback (most recent call last):
+  File "/home/ubuntu/RecSys-Challenge-2022-Polimi/HyperparameterTuning/SearchAbstractClass.py", line 495, in _objective_function
+    result_df_test = self._evaluate_on_test(recommender_instance, current_fit_hyperparameters_dict,
+  File "/home/ubuntu/RecSys-Challenge-2022-Polimi/HyperparameterTuning/SearchAbstractClass.py", line 392, in _evaluate_on_test
+    result_string = get_result_string_df(result_df_test)
+NameError: name 'get_result_string_df' is not defined
+
+SearchBayesianSkopt: New best config found. Config 1: {'num_factors': 96} - results: PRECISION: 0.0122865, PRECISION_RECALL_MIN_DEN: 0.0260705, RECALL: 0.0253171, MAP: 0.0048076, MAP_MIN_DEN: 0.0100209, MRR: 0.0406964, NDCG: nan, F1: 0.0165441, HIT_RATE: 0.1042154, ARHR_ALL_HITS: 0.0441153, NOVELTY: 0.0042689, AVERAGE_POPULARITY: 0.2058627, DIVERSITY_MEAN_INTER_LIST: 0.8326500, DIVERSITY_HERFINDAHL: 0.9832629, COVERAGE_ITEM: 0.0254213, COVERAGE_ITEM_HIT: 0.0090586, ITEMS_IN_GT: 0.9612764, COVERAGE_USER: 0.9351414, COVERAGE_USER_HIT: 0.0974561, USERS_IN_GT: 0.9351414, DIVERSITY_GINI: 0.0044725, SHANNON_ENTROPY: 6.9804087, RATIO_DIVERSITY_HERFINDAHL: 0.9837218, RATIO_DIVERSITY_GINI: 0.0102583, RATIO_SHANNON_ENTROPY: 0.5297191, RATIO_AVERAGE_POPULARITY: 3.3673240, RATIO_NOVELTY: 0.4910490, 
+SearchBayesianSkopt: Config 1 Exception. Config: {'num_factors': 96} - Exception: Traceback (most recent call last):
+  File "/home/ubuntu/RecSys-Challenge-2022-Polimi/HyperparameterTuning/SearchAbstractClass.py", line 495, in _objective_function
+    result_df_test = self._evaluate_on_test(recommender_instance, current_fit_hyperparameters_dict,
+  File "/home/ubuntu/RecSys-Challenge-2022-Polimi/HyperparameterTuning/SearchAbstractClass.py", line 392, in _evaluate_on_test
+    result_string = get_result_string_df(result_df_test)
+NameError: name 'get_result_string_df' is not defined
+
