@@ -58,6 +58,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
 def df_preprocess(df, saving=True, mode=0, progress=True):
     for index, row in tqdm(df.iterrows(), total=len(df)):
+        list_to_convert=[]
         # print(index)
         print(len(df))
 
@@ -72,8 +73,11 @@ def df_preprocess(df, saving=True, mode=0, progress=True):
         elif mode == 2:
             userid = row[columns[0]]
             for item in displayList:
-                df.loc[len(df.index)] = [userid, item, None, -1]
+                list_to_convert.append( [userid, item, None, -1])
         # print("OKOK")
+        if mode==2:
+            df1=pd.DataFrame(list_to_convert,columns=columns)
+            df=df.append(df1)
 
     if saving:
         save(df, "out_" + str(mode))
@@ -190,7 +194,7 @@ def merge(ICM_a, ICM_b):
 
 
 def save(data, name, path="../output/"):
-    data.to_csv(path + name + '.csv')
+    data.to_csv(path + name + '.csv', index=False)
 
 
 
