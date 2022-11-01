@@ -160,18 +160,21 @@ def testing_phase():
 
 
 import os
+
 dirname = os.path.dirname(__file__)
-matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
+matrix_path = os.path.join(dirname,  "data/interactions_and_impressions.csv")
+ICM_path=os.path.join(dirname,  "data/data_ICM_type.csv")
 
-URM_all=Read.read_train_csr(matrix_path)
+
+URM_train, ICM_all=Read.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM=ICM_path)
 
 
-URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage = 0.80)
+URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)
 URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)
 
 #declaring the icm matrix
-matrix_path = os.path.join(dirname, "data/data_ICM_type.csv")
-ICM_all=pd=Read.merge(Read.read_ICM_type("csr",matrix_path=matrix_path),Read.read_ICM_length("csr", matrix_path=os.path.join(dirname, "data/data_ICM_length.csv")))
+matrix_path = os.path.join(dirname, "data/data_ICM_length.csv")
+
 
 
 #ICM_all = dataset.get_loaded_ICM_dict()["ICM_all"]
@@ -185,9 +188,9 @@ Best_Shrink=[]
 #Keep the reference to the topK paramter sorted as the bet MAP
 Best_topK=[]
 #Parameter that declare how many of the best parameter store in the array
-max_length_best=15
+max_length_best=30
 #Variable for the num of parameter for shrink and topKin the test phase
-size_parameter=10
+size_parameter=20
 #Start time
 start_time=datetime.now().strftime("%D:  %H:%M:%S")
 
