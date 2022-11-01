@@ -1,0 +1,28 @@
+0.  MAP: 0.02273129823376888    Name: TF-IDF     Shrink: 488   topK: 353
+1.  MAP: 0.02272911015703386    Name: TF-IDF     Shrink: 488   topK: 355
+2.  MAP: 0.022726815103256092    Name: TF-IDF     Shrink: 439   topK: 353
+3.  MAP: 0.022726202956844944    Name: TF-IDF     Shrink: 439   topK: 355
+4.  MAP: 0.022725851319343376    Name: TF-IDF     Shrink: 448   topK: 353
+5.  MAP: 0.0227250727641991    Name: TF-IDF     Shrink: 448   topK: 355
+6.  MAP: 0.02272383163239783    Name: TF-IDF     Shrink: 421   topK: 353
+7.  MAP: 0.022723053077253544    Name: TF-IDF     Shrink: 421   topK: 355
+8.  MAP: 0.022721683176789746    Name: TF-IDF     Shrink: 353   topK: 353
+9.  MAP: 0.022721683176789746    Name: TF-IDF     Shrink: 355   topK: 353
+10.  MAP: 0.02272061934953152    Name: TF-IDF     Shrink: 335   topK: 353
+11.  MAP: 0.022719497081111078    Name: TF-IDF     Shrink: 488   topK: 335
+12.  MAP: 0.022717511072123414    Name: TF-IDF     Shrink: 353   topK: 355
+13.  MAP: 0.022717511072123414    Name: TF-IDF     Shrink: 355   topK: 355
+14.  MAP: 0.022716839494021854    Name: TF-IDF     Shrink: 335   topK: 355
+15.  MAP: 0.022716163953807593    Name: TF-IDF     Shrink: 271   topK: 353
+16.  MAP: 0.02271560430538962    Name: TF-IDF     Shrink: 254   topK: 353
+17.  MAP: 0.022715352711233597    Name: TF-IDF     Shrink: 448   topK: 335
+18.  MAP: 0.022715288326902307    Name: TF-IDF     Shrink: 293   topK: 353
+19.  MAP: 0.022714929755703554    Name: TF-IDF     Shrink: 439   topK: 335
+20.  MAP: 0.022713333024288046    Name: TF-IDF     Shrink: 421   topK: 335
+21.  MAP: 0.022712964547807562    Name: TF-IDF     Shrink: 335   topK: 335
+22.  MAP: 0.0227119542090707    Name: TF-IDF     Shrink: 353   topK: 335
+23.  MAP: 0.0227119542090707    Name: TF-IDF     Shrink: 355   topK: 335
+24.  MAP: 0.022711695681217413    Name: TF-IDF     Shrink: 219   topK: 353
+
+Started at:  10/31/22:  10:42:15
+Finished at (Date-Time):   11/01/22:  03:34:50

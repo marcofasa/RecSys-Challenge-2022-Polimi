@@ -111,5 +111,9 @@ ENV/
 # mkdocs documentation
 /site
 
+#cython
+*.c
+*.so
+*.html
 # mypy
 .mypy_cache/
