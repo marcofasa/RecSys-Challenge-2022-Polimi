@@ -52,6 +52,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
             return matrix.tocsr()
         else:
             csr_stats(matrix.tocsr(), n_items)
+            return matrix.tocsr()
     else:
         return matrix.tocsc()
 
