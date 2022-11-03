@@ -43,8 +43,8 @@ class Writer(object):
         print(user_array)
 
         with open(write_path,"w+") as d:
-            d.write("user_id,item_id\n")
-            writer = csv.writer(d)
+            d.write("user_id,item_list\n")
+            writer = csv.writer(d, delimiter=' ')
 
             for i in range(len(user_array)):
 
