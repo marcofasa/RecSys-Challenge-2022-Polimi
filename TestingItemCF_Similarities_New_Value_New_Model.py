@@ -275,6 +275,8 @@ def start_parameter_tuning(x):
 
     global x_tick_rnd_topK
     global x_tick_rnd_shrink
+
+
     x_tick_rnd_topK = loguniform.rvs(10, 500, size=size_parameter).astype(int)
     x_tick_rnd_topK.sort()
     x_tick_rnd_topK = list(x_tick_rnd_topK)
