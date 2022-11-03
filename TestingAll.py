@@ -82,10 +82,9 @@ def read_data_split_and_search():
                                                        evaluator_validation_earlystopping = evaluator_validation,
                                                        evaluator_validation = evaluator_validation,
                                                        evaluator_test = evaluator_test,
-                                                       output_folder_path = output_folder_path,
+                                                       output_folder_path = "/home/vittorio/Scrivania/Politecnico/RecSys/RecSys-Challenge-2022-Polimi/result_experiments",
                                                        resume_from_saved = True,
                                                        similarity_type_list = ["cosine"],
-                                                       parallelizeKNN = True,
                                                        allow_bias_URM= True,
                                                        allow_dropout_MF=True,
                                                        )

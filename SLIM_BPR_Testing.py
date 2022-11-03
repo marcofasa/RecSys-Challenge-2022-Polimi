@@ -75,16 +75,16 @@ def save_data(phase):
 def training_phase():
     for topK in x_tick_rnd_topK:
         for learning_rate in learning_rate_array:
-            for lambda1 in x_tick_lamda1:
-                for lambda2 in x_tick_lamda2:
+            for i in range(size_parameter):
+
             # x_tick.append("topk {}, shrink {}".format(topK, shrink))
 
-                    SLIM_BPR.fit(epochs=num_epochs,lambda_i=lambda1,lambda_j=lambda2,learning_rate=learning_rate,topK=topK)
+                SLIM_BPR.fit(epochs=num_epochs,lambda_i=x_tick_lamda1[i],lambda_j=x_tick_lamda2[i],learning_rate=learning_rate,topK=topK)
 
-                    result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
-                    print("This is the MAP " + str(result_df.loc[10]["MAP"]) + " with learning rate " + str(learning_rate) + " and topK " + str(topK) + " and lambda1 " + str(lambda1) + " and labda2  "+ str(lambda2))
-                    order_MAP(result_df.loc[10]["MAP"], topK,learning_rate,lambda1,lambda2)
-
+                result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
+                print("This is the MAP " + str(result_df.loc[10]["MAP"]) + " with learning rate " + str(learning_rate) + " and topK " + str(topK) + " and lambda1 " + str(lambda1) + " and labda2  "+ str(lambda2))
+                order_MAP(result_df.loc[10]["MAP"], topK,learning_rate,x_tick_lamda1[i],x_tick_lamda2[i])
+                save_data()
     save_data(phase="Training")
     return
 
