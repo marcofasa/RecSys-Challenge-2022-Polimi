@@ -1,0 +1,8 @@
+0.  MAP: 0.0  Model Type  TF-IDF     Shrink: 233   topK: 233   similarity:  jaccard
+1.  MAP: 0.0  Model Type  BM25     Shrink: 233   topK: 233   similarity:  tanimoto
+2.  MAP: 0.0  Model Type  TF-IDF     Shrink: 233   topK: 233   similarity:  tanimoto
+3.  MAP: 0.0  Model Type  BM25     Shrink: 233   topK: 233   similarity:  jaccard
+4.  MAP: 0.0  Model Type  None     Shrink: 233   topK: 233   similarity:  jaccard
+
+Started at:  11/03/22:  19:26:28
+Finished at (Date-Time):   11/03/22:  19:28:18
