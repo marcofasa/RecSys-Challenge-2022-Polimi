@@ -1,5 +1,7 @@
 import math
 import sys
+from collections import Counter, defaultdict
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
@@ -12,7 +14,7 @@ columns = ["UserID", "ItemID", "Interaction", "Data"]
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=0, display=False, saving=False):
+                   stats=False, preprocess=0, display=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -37,11 +39,11 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # 0--> just description see interaction
     # 1--> real interaction
 
-    #df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
+    # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
     matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
 
     if preprocess > 0:
-        print("Preprocessing..")
+        print("Preprocessing with mode: "+str(preprocess))
         df_preprocess(matrix_df, saving=True, mode=preprocess)
 
     print(len(matrix_df))
@@ -59,54 +61,63 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
                              ))
 
     # TODO also consider other shows appeared
-    # if is 1 (just description read) is less important
+    # if is 0 (just description read) is less important
 
     if matrix_format == "csr":
-        if not stats:
-            return matrix.tocsr()
-        else:
+        if stats:
             csr_stats(matrix.tocsr(), n_items)
-            return matrix.tocsr()
+        return matrix.tocsr()
     else:
         return matrix.tocsc()
-
 
     # colsToChange: The column where replace values
     # valsToPlace: dictionary of vals of kind:
     #  {oldval1: newval1 , oldval2: newval1,...}
+
+
 def df_col_normalize(df, colToChange, valsToPlace):
     df[colToChange] = df[colToChange].replace(valsToPlace)
 
 
 def df_preprocess(df, saving=True, mode=0):
     list_to_convert = []
-    for index, row in tqdm(df.iterrows(), total=len(df)):
+    for index, row in tqdm(df.iterrows(), total=len(df),desc="Passing through all dataset to gather infos..."):
         # print(index)
-        #print(len(df))
+        # print(len(df))
 
         displayList = []
         if type(row[columns[2]]) == str:
             displayList = row[columns[2]].split(",")
             displayList = [eval(i) for i in displayList]
 
+        userid = row[columns[0]]
+        item = row[columns[1]]
         # counting other TV series displayed
-        if mode == 1:
+        if mode == 1: #Displayed
             df.loc[index, 'Displayed'] = len(displayList)  # insert to the new column
-        elif mode == 2:
-            userid = row[columns[0]]
+        elif mode == 2: #Extended
             for item in displayList:
                 list_to_convert.append([userid, item, None, -1])
+        elif mode == 3: #Rewatch
+            if row[columns[3]] == 1:
+                list_to_convert.append([userid, item])
 
-    if mode == 2:
+    if mode < 3:
         df1 = pd.DataFrame(list_to_convert, columns=columns)
         df = df.append(df1)
+        df.columns=columns
+        df=df.drop([2], axis=1)
+        # df=df.sort_values(by=[0,1])
+    elif mode == 3:
+        cols = ["UserID", "ItemID", "Rewatch"]
+        c = Counter(map(tuple, list_to_convert)).most_common()
+        list_to_convert_final = []
+        for i in tqdm(c,desc="Counting the rewatches"):
+            list_to_convert_final.append([i[0][0], i[0][1], i[1]])
+        df = pd.DataFrame(list_to_convert_final, columns=cols)
 
     if saving:
         save(df, "out_" + str(mode))
-
-
-
-
 
 
 def df_stats(dataframe):
@@ -219,8 +230,12 @@ def merge(ICM_a, ICM_b):
     return sps.hstack([ICM_a, ICM_b])
 
 
-def save(data, name,fullPath, relativePath="../output/"):
-    data.to_csv(relativePath + name + '.csv', index=False)
+def save(data, name, relativePath="../output/",fullPath=None):
+    if fullPath is None:
+        data.to_csv(relativePath + name + '.csv', index=False)
+    else:
+        data.to_csv(fullPath, index=False)
+
 
 
 def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type, matrix_path_ICM_length):
@@ -298,4 +313,4 @@ def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type, matrix_path_ICM_leng
 ################
 
 if __name__ == '__main__':
-    read_train_csr(preprocess=2, saving=True)
+    read_train_csr(preprocess=3)
