@@ -151,10 +151,10 @@ Best_similarities_validation=[]
 Best_similarities_testing=[]
 
 # Parameter that declare how many of the best parameter to save, it will be the number of loops for the validantion and test phase, MUST BE GREATER OR EQUAL THAN THE SIZE PARAMETER SQURED
-max_length_best = 4
+max_length_best = 150
 
 # Variable for the num of parameter for shrink and topKin the test phase, the number of loops will be this number squared
-size_parameter = 2
+size_parameter = 30
 # Start timeb
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #similarities to test
