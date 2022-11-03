@@ -1,8 +1,8 @@
-0.  MAP: 0.0     Shrink: 488   topK: 353   similarity:  tanimoto
-1.  MAP: 0.0     Shrink: 488   topK: 353   similarity:  jaccard
+0.  MAP: 0.0     Shrink: 488   topK: 353   similarity:  jaccard
+1.  MAP: 0.0     Shrink: 488   topK: 353   similarity:  tanimoto
 2.  MAP: 0.0     Shrink: 488   topK: 353   similarity:  euclidean
 3.  MAP: 0.0     Shrink: 488   topK: 353   similarity:  adjusted
 4.  MAP: 0.0     Shrink: 488   topK: 353   similarity:  pearson
 
-Started at:  11/03/22:  19:00:12
-Finished at (Date-Time):   11/03/22:  19:03:30
+Started at:  11/03/22:  21:22:59
+Finished at (Date-Time):   11/03/22:  21:24:39
