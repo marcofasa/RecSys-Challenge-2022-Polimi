@@ -12,12 +12,16 @@ from Recommenders.MatrixFactorization import PureSVDRecommender
 
 from  Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
 import os
-
+from Utils import Reader
 dirname = os.path.dirname(__file__)
 matrix_path = os.path.join(dirname,  "data/interactions_and_impressions.csv")
 ICM_path=os.path.join(dirname,  "data/data_ICM_type.csv")
 ICM_path_length=os.path.join(dirname,  "data/data_ICM_length.csv")
-URM_train, ICM_all=Read.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path,matrix_path_ICM_length=ICM_path_length)
+URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 
-print(ICM_all.head(n=10))
+
 #ItemKNNCBFRecommender(URM_train=URM_train,ICM_train=ICM_all)
+from Utils.Writer import Writer,NameRecommender
+
+a=Writer(NameRecommender.ItemKNNCFRecommenderTF_IDF,topK=353,shrink=488,URM=URM_train)
+a.makeSubmission()

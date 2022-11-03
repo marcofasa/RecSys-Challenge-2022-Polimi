@@ -32,7 +32,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
     user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
     #matrix_df.loc[~(matrix_df == 0).all(axis=2)]
-    matrix_df = matrix_df.drop(matrix_df[matrix_df[columns[3]] ==0].index)
+    #matrix_df = matrix_df.drop(matrix_df[matrix_df[columns[3]] ==0].index)
     # flipping 0 and 1 (from now on:
     # 0--> just description see interaction
     # 1--> real interaction
@@ -225,7 +225,7 @@ def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_lengt
                       header=None,
                       dtype={0: int, 1: int, 2: int},
                       engine='python')
-    ICM_type.columns = ['ItemID', 'feature', 'data']
+    ICM_type.columns = ['ItemID', 'FeatureID', 'data']
 
     ICM_length= pd.read_csv(filepath_or_buffer=matrix_path_ICM_length,
                             sep=",",
@@ -248,21 +248,21 @@ def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_lengt
     item_original_ID_to_index = pd.Series(mapped_id, index=original_id)
 
 
-    mapped_id, original_id = pd.factorize(ICM_type["feature"].unique())
+    mapped_id, original_id = pd.factorize(ICM_type["FeatureID"].unique())
     feature_original_ID_to_index = pd.Series(mapped_id, index=original_id)
 
     print("Unique FeatureID in the URM are {}".format(len(feature_original_ID_to_index)))
 
     URM["UserID"] = URM["UserID"].map(user_original_ID_to_index)
     URM["ItemID"] = URM["ItemID"].map(item_original_ID_to_index)
-
+    URM[columns[3]] = URM[columns[3]].replace({0: 1, 1: 0})
     # matrix_df.loc[~(matrix_df == 0).all(axis=2)]
 
     ICM_type["ItemID"] = ICM_type["ItemID"].map(item_original_ID_to_index)
-    ICM_type["feature"] = ICM_length["feature"].map(feature_original_ID_to_index)
+    ICM_type["FeatureID"] = ICM_type["FeatureID"].map(feature_original_ID_to_index)
 
 
-    ICM_type["ItemID"] = ICM_type["ItemID"].map(item_original_ID_to_index)
+
 
 
     n_users = len(user_original_ID_to_index)
@@ -275,8 +275,8 @@ def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_lengt
 
 
 
-    ICM_all_type = sps.csr_matrix((np.ones(len(ICM_length["ItemID"].values)),
-                                   (ICM_length["ItemID"].values, ICM_length["feature"].values)),
+    ICM_all_type = sps.csr_matrix((np.ones(len(ICM_type["ItemID"].values)),
+                                   (ICM_type["ItemID"].values, ICM_type["FeatureID"].values)),
                                   shape=(n_items, n_features))
 
     ICM_all_length=sps.csr_matrix((np.ones(len(ICM_length["Data"].values)),
@@ -286,9 +286,11 @@ def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_lengt
 
     ICM_all_type.data = np.ones_like(ICM_all_type.data)
 
-    ICM_all=ICM_all_length.join(ICM_all_type)
 
-    return URM_all, ICM_all
+
+
+
+    return URM_all, ICM_all_type
 
 ################
 

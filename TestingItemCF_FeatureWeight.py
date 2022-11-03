@@ -220,3 +220,4 @@ validation_phase()
 testing_phase()
 
 
+#TODO: try other similarity!!
