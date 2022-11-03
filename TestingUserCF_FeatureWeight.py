@@ -1,13 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as pyplot 
-import pandas as pd
-import scipy.sparse as sps
-from Data_manager.Movielens.Movielens10MReader import Movielens10MReader
 from Utils.Evaluator import EvaluatorHoldout
 from Data_manager.split_functions.split_train_validation_random_holdout import split_train_in_two_percentage_global_sample
 from datetime import datetime
 from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
 import os
+
 
 
 
@@ -45,7 +41,7 @@ def order_MAP(name,MAP,shrink,topK):
 #Write the best MAP with their name anda parameters in a textfile in the directory Testing_Results
 def save_data(phase):
     if(phase=="Training"):
-        file= open("../Testing_Results/CBFR_Best_Training.txt", "w+")
+        file= open("Testing_Results/CBFR_Best_Training.txt", "w+")
         for index in range(max_length_best):
             file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
         file.write("\nStarted at:  "+ str(start_time) + "\nFinished at (Date-Time):   " + str(datetime.now().strftime("%D:  %H:%M:%S")))
@@ -183,9 +179,17 @@ def testing_phase():
     return
 
 #Declaring the URM and splitting the dataset
-URM_all = load_URM()
+import pandas as pd
+from Utils import Reader
 
-URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage = 0.80)
+dirname = os.path.dirname(__file__)
+matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
+
+URM_train=Reader.read_train_csr(matrix_path,preprocess=3)
+
+print(URM_train)
+
+URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)
 URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)
 
 
