@@ -12,7 +12,7 @@ columns = ["UserID", "ItemID", "Interaction", "Data"]
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=0, display=False, saving=False, progress=True):
+                   stats=False, preprocess=0, display=False, saving=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -31,17 +31,20 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     print("Unique UserID in the URM and ICM are {}".format(len(original_id)))
 
     user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
-    #matrix_df.loc[~(matrix_df == 0).all(axis=2)]
-    #matrix_df = matrix_df.drop(matrix_df[matrix_df[columns[3]] ==0].index)
+    # matrix_df.loc[~(matrix_df == 0).all(axis=2)]
+    # matrix_df = matrix_df.drop(matrix_df[matrix_df[columns[3]] ==0].index)
     # flipping 0 and 1 (from now on:
     # 0--> just description see interaction
     # 1--> real interaction
+
+    #df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
     matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
-    print(len(matrix_df))
 
     if preprocess > 0:
         print("Preprocessing..")
         df_preprocess(matrix_df, saving=True, mode=preprocess)
+
+    print(len(matrix_df))
 
     if display:
         print("Displaying..")
@@ -68,11 +71,18 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
         return matrix.tocsc()
 
 
-def df_preprocess(df, saving=True, mode=0, progress=True):
+    # colsToChange: The column where replace values
+    # valsToPlace: dictionary of vals of kind:
+    #  {oldval1: newval1 , oldval2: newval1,...}
+def df_col_normalize(df, colToChange, valsToPlace):
+    df[colToChange] = df[colToChange].replace(valsToPlace)
+
+
+def df_preprocess(df, saving=True, mode=0):
+    list_to_convert = []
     for index, row in tqdm(df.iterrows(), total=len(df)):
-        list_to_convert=[]
         # print(index)
-        print(len(df))
+        #print(len(df))
 
         displayList = []
         if type(row[columns[2]]) == str:
@@ -85,14 +95,18 @@ def df_preprocess(df, saving=True, mode=0, progress=True):
         elif mode == 2:
             userid = row[columns[0]]
             for item in displayList:
-                list_to_convert.append( [userid, item, None, -1])
-        # print("OKOK")
-        if mode==2:
-            df1=pd.DataFrame(list_to_convert,columns=columns)
-            df=df.append(df1)
+                list_to_convert.append([userid, item, None, -1])
+
+    if mode == 2:
+        df1 = pd.DataFrame(list_to_convert, columns=columns)
+        df = df.append(df1)
 
     if saving:
         save(df, "out_" + str(mode))
+
+
+
+
 
 
 def df_stats(dataframe):
@@ -152,7 +166,7 @@ def csr_stats(csr, n_items):
     pyplot.show()
 
 
-def read_ICM_length(matrix_format="csr", clean=True,matrix_path="../data/data_ICM_type.csv"):
+def read_ICM_length(matrix_format="csr", clean=True, matrix_path="../data/data_ICM_type.csv"):
     df = pd.read_csv(filepath_or_buffer=matrix_path,
                      sep=",",
                      skiprows=1,
@@ -171,7 +185,7 @@ def read_ICM_length(matrix_format="csr", clean=True,matrix_path="../data/data_IC
         return sps.csc_matrix(pd.DataFrame(data=df, columns=["EPLength"]).to_numpy())
 
 
-def read_ICM_type(matrix_format="csr", clean=True,matrix_path="../data/data_ICM_type.csv"):
+def read_ICM_type(matrix_format="csr", clean=True, matrix_path="../data/data_ICM_type.csv"):
     df = pd.read_csv(filepath_or_buffer=matrix_path,
                      sep=",",
                      skiprows=1,
@@ -205,10 +219,11 @@ def merge(ICM_a, ICM_b):
     return sps.hstack([ICM_a, ICM_b])
 
 
-def save(data, name, path="../output/"):
-    data.to_csv(path + name + '.csv', index=False)
+def save(data, name,fullPath, relativePath="../output/"):
+    data.to_csv(relativePath + name + '.csv', index=False)
 
-def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_length):
+
+def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type, matrix_path_ICM_length):
     columns = ["UserID", "ItemID", "Interaction", "Data"]
     n_items = 0
     URM = pd.read_csv(filepath_or_buffer=matrix_path_URM,
@@ -219,23 +234,21 @@ def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_lengt
                       engine='python')
     URM.columns = columns
 
-
     ICM_type = pd.read_csv(filepath_or_buffer=matrix_path_ICM_type,
-                      sep=",",
-                      skiprows=1,
-                      header=None,
-                      dtype={0: int, 1: int, 2: int},
-                      engine='python')
+                           sep=",",
+                           skiprows=1,
+                           header=None,
+                           dtype={0: int, 1: int, 2: int},
+                           engine='python')
     ICM_type.columns = ['ItemID', 'FeatureID', 'data']
 
-    ICM_length= pd.read_csv(filepath_or_buffer=matrix_path_ICM_length,
-                            sep=",",
-                            skiprows=1,
-                            header=None,
-                            dtype={0: int, 1: int, 2: int},
-                            engine='python')
+    ICM_length = pd.read_csv(filepath_or_buffer=matrix_path_ICM_length,
+                             sep=",",
+                             skiprows=1,
+                             header=None,
+                             dtype={0: int, 1: int, 2: int},
+                             engine='python')
     ICM_length.columns = ['ItemID', 'Episodes', 'Data']
-
 
     mapped_id, original_id = pd.factorize(URM["UserID"].unique())
 
@@ -247,7 +260,6 @@ def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_lengt
     print("Unique ItemID in the URM and ICM_length are {}".format(len(original_id)))
 
     item_original_ID_to_index = pd.Series(mapped_id, index=original_id)
-
 
     mapped_id, original_id = pd.factorize(ICM_type["FeatureID"].unique())
     feature_original_ID_to_index = pd.Series(mapped_id, index=original_id)
@@ -262,10 +274,6 @@ def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_lengt
     ICM_type["ItemID"] = ICM_type["ItemID"].map(item_original_ID_to_index)
     ICM_type["FeatureID"] = ICM_type["FeatureID"].map(feature_original_ID_to_index)
 
-
-
-
-
     n_users = len(user_original_ID_to_index)
     n_items = len(item_original_ID_to_index)
     n_features = len(feature_original_ID_to_index)
@@ -274,24 +282,18 @@ def get_URM_ICM_Type(matrix_path_URM ,matrix_path_ICM_type,matrix_path_ICM_lengt
                               (URM[columns[0]].values, URM[columns[1]].values)),
                              shape=(n_users, n_items))
 
-
-
     ICM_all_type = sps.csr_matrix((np.ones(len(ICM_type["ItemID"].values)),
                                    (ICM_type["ItemID"].values, ICM_type["FeatureID"].values)),
                                   shape=(n_items, n_features))
 
-    ICM_all_length=sps.csr_matrix((np.ones(len(ICM_length["Data"].values)),
-                                   (ICM_length["ItemID"].values, ICM_length["Episodes"].values)),
-                                  shape=(n_items, n_features))
-
+    ICM_all_length = sps.csr_matrix((np.ones(len(ICM_length["Data"].values)),
+                                     (ICM_length["ItemID"].values, ICM_length["Episodes"].values)),
+                                    shape=(n_items, n_features))
 
     ICM_all_type.data = np.ones_like(ICM_all_type.data)
 
-
-
-
-
     return URM_all, ICM_all_type
+
 
 ################
 
