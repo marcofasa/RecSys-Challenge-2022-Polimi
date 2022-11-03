@@ -6,7 +6,8 @@ from Data_manager.split_functions.split_train_validation_random_holdout import \
     split_train_in_two_percentage_global_sample
 from datetime import datetime
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
-
+import multiprocessing
+import numpy as np
 
 #
 # Order the best map, with the same order with the name, topk and shrink
@@ -228,7 +229,7 @@ Best_similarities_testing=[]
 max_length_best = 150
 
 # Variable for the num of parameter for shrink and topKin the test phase, the number of loops will be this number squared
-size_parameter = 20
+size_parameter = 10
 #similarities to test
 similarities=["pearson", "jaccard", "tanimoto", "adjusted", "euclidean"]
 
@@ -239,15 +240,9 @@ start_time = datetime.now().strftime("%D:  %H:%M:%S")
 from scipy.stats import loguniform
 
 
-x_tick_rnd_topK = loguniform.rvs(10, 500, size=size_parameter).astype(int)
-x_tick_rnd_topK.sort()
-x_tick_rnd_topK = list(x_tick_rnd_topK)
-#x_tick_rnd_topK=[233]
+x_tick_rnd_topK =[]
 
-x_tick_rnd_shrink = loguniform.rvs(10, 500, size=size_parameter).astype(int)
-x_tick_rnd_shrink.sort()
-x_tick_rnd_shrink = list(x_tick_rnd_shrink)
-#x_tick_rnd_shrink=[233]
+x_tick_rnd_shrink = []
 
 import os
 dirname = os.path.dirname(__file__)
@@ -273,9 +268,34 @@ collaborative_recommender_TF_IDF = ItemKNNCFRecommender(URM_train)
 collaborative_TF_IDF_MAP = []
 
 
-training_phase()
-validation_phase()
-testing_phase()
 
+
+def start_parameter_tuning(x):
+
+
+    global x_tick_rnd_topK
+    global x_tick_rnd_shrink
+    x_tick_rnd_topK = loguniform.rvs(10, 500, size=size_parameter).astype(int)
+    x_tick_rnd_topK.sort()
+    x_tick_rnd_topK = list(x_tick_rnd_topK)
+
+    x_tick_rnd_shrink = loguniform.rvs(10, 500, size=size_parameter).astype(int)
+    # x_tick_rnd_shrink=np.random.randint(10,size=10)
+    x_tick_rnd_shrink.sort()
+    x_tick_rnd_shrink = list(x_tick_rnd_shrink)
+
+    training_phase()
+    validation_phase()
+    testing_phase()
+
+
+pool = multiprocessing.Pool(processes=int(multiprocessing.cpu_count()), maxtasksperchild=1)
+n_thread= np.zeros(multiprocessing.cpu_count()-2)
+pool.map(start_parameter_tuning, n_thread)
+
+
+
+
+#TODO: try other similari
 
 #TODO: try other s

@@ -155,7 +155,7 @@ size_parameter = 25
 # Start timeb
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #similarities to test
-similarities=["pearson", "jaccard", "tanimoto", "adjusted", "euclidean"]
+similarities=["pearson", "jaccard", "tanimoto", "adjusted", "euclidean","cosine"]
 
 
 # random search with the log uniform
@@ -183,9 +183,32 @@ collaborative_recommender_TF_IDF = ItemKNNCFRecommender(URM_train)
 collaborative_TF_IDF_MAP = []
 
 
-training_phase()
-validation_phase()
-testing_phase()
+
+
+
+def start_parameter_tuning(x):
+
+
+    global x_tick_rnd_topK
+    global x_tick_rnd_shrink
+    x_tick_rnd_topK = loguniform.rvs(10, 500, size=size_parameter).astype(int)
+    x_tick_rnd_topK.sort()
+    x_tick_rnd_topK = list(x_tick_rnd_topK)
+
+    x_tick_rnd_shrink = loguniform.rvs(10, 500, size=size_parameter).astype(int)
+    # x_tick_rnd_shrink=np.random.randint(10,size=10)
+    x_tick_rnd_shrink.sort()
+    x_tick_rnd_shrink = list(x_tick_rnd_shrink)
+
+    training_phase()
+    validation_phase()
+    testing_phase()
+
+
+pool = multiprocessing.Pool(processes=int(multiprocessing.cpu_count()), maxtasksperchild=1)
+n_thread= np.zeros(multiprocessing.cpu_count()-2)
+pool.map(start_parameter_tuning, n_thread)
+
 
 
 #TODO: try other similarity!!

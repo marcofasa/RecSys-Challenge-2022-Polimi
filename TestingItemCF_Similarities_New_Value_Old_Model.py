@@ -8,7 +8,7 @@ from Data_manager.split_functions.split_train_validation_random_holdout import \
 from datetime import datetime
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 import multiprocessing
-
+import numpy as np
 # Order the best map, with the same order with the name, topk and shrink
 def order_MAP(Best_MAP_phase,Best_shrink_phase,Best_similarity_phase,Best_TopK_Phase,MAP, shrink, topK, similarity):
     # Check if the MAP is less than the one alredy stored and insert it at that index
@@ -158,7 +158,7 @@ size_parameter = 6
 # Start timeb
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #similarities to test
-similarities=["pearson", "jaccard", "tanimoto", "adjusted", "euclidean"]
+similarities=["pearson", "jaccard", "tanimoto", "adjusted", "euclidean", "cosine"]
 
 
 # random search with the log uniform
@@ -195,7 +195,7 @@ collaborative_TF_IDF_MAP = []
 
 
 
-def start_parameter_tuning():
+def start_parameter_tuning(x):
 
 
     global x_tick_rnd_topK
@@ -215,7 +215,8 @@ def start_parameter_tuning():
 
 
 pool = multiprocessing.Pool(processes=int(multiprocessing.cpu_count()), maxtasksperchild=1)
-pool.map(start_parameter_tuning, range(multiprocessing.cpu_count()-2))
+n_thread= np.zeros(multiprocessing.cpu_count()-2)
+pool.map(start_parameter_tuning, n_thread)
 
 
 
