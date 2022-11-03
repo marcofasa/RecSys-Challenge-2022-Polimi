@@ -189,7 +189,7 @@ x_tick_rnd_topK = list(x_tick_rnd_topK)
 
 x_tick_rnd_shrink = loguniform.rvs(10, 500, size=size_parameter).astype(int)
 x_tick_rnd_shrink.sort()
-x_tick_rnd_shrink = list(x_tick_rnd_topK)
+x_tick_rnd_shrink = list(x_tick_rnd_shrink)
 
 import os
 dirname = os.path.dirname(__file__)
