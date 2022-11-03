@@ -45,7 +45,7 @@ def order_MAP(name,MAP,shrink,topK):
 #Write the best MAP with their name anda parameters in a textfile in the directory Testing_Results
 def save_data(phase):
     if(phase=="Training"):
-        file= open("Testing_Results/CBFR_Best_Training.txt","w+")
+        file= open("../Testing_Results/CBFR_Best_Training.txt", "w+")
         for index in range(max_length_best):
             file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "    Name: " + str(Model_type[index]) + "     Shrink: " + str(Best_Shrink[index]) + "   topK: " + str(Best_topK[index]) + "\n")
         file.write("\nStarted at:  "+ str(start_time) + "\nFinished at (Date-Time):   " + str(datetime.now().strftime("%D:  %H:%M:%S")))

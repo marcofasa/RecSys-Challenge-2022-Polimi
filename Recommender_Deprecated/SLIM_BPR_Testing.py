@@ -42,7 +42,7 @@ def order_MAP(MAP,topK,learning_rate,lambda1,lambda2):
 # Write the best MAP with their name and parameters in a textfile in the directory Testing_Results
 def save_data(phase):
     if (phase == "Training"):
-        file = open("Testing_Results/SLIM_Best_Training.txt", "w+")
+        file = open("../Testing_Results/SLIM_Best_Training.txt", "w+")
         for index in range(max_length_best):
             file.write(str(index) + ".  MAP: " + str(Best_MAP[index]) + "     Learning rate: " + str(Best_Learning_Rate[index]) + "   topK: " + str(
                 Best_topK[index]) +  "  lambda1 " + str(Best_Lambda1[index]) + "lamda2 " + str(Best_Lambda2[index]) + "\n")
@@ -132,7 +132,7 @@ def testing_phase():
 
 import os
 dirname = os.path.dirname(__file__)
-matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
+matrix_path = os.path.join(dirname, "../data/interactions_and_impressions.csv")
 
 URM_all=Read.read_train_csr(matrix_path)
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage=0.60)
