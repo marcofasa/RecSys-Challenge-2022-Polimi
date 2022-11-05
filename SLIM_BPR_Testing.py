@@ -180,8 +180,9 @@ from sklearn.model_selection import train_test_split
 dirname = os.path.dirname(__file__)
 matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 
+rewatches_path=os.path.join(dirname, "data/rewatches.csv")
 
-URM_train=pd.read_csv("/home/vittorio/Scrivania/Politecnico/RecSys/RecSys-Challenge-2022-Polimi/data/rewatches.csv",sep=",",
+URM_train=pd.read_csv(rewatches_path,sep=",",
                             skiprows=1,
                             header=None,
                             dtype={0: int, 1: int, 2: int},
