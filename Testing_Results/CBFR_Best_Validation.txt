@@ -14,5 +14,5 @@
 13.  MAP: 3.612405912114714e-05    Name: TF-IDF     Shrink: 24   topK: 417
 14.  MAP: 3.612405912114714e-05    Name: BM25     Shrink: 25   topK: 417
 
-Started at:  11/05/22:  13:07:34
-Finished at (Date-Time):   11/05/22:  19:37:17
+Started at:  11/05/22:  19:37:17
+Finished at (Date-Time):   11/05/22:  19:46:53

@@ -166,7 +166,7 @@ matrix_path = os.path.join(dirname,  "data/interactions_and_impressions.csv")
 ICM_path=os.path.join(dirname,  "data/data_ICM_type.csv")
 
 
-URM_train, ICM_all=Read.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM=ICM_path)
+URM_train, ICM_all=Read.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
 
 
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)

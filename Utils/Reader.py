@@ -240,7 +240,7 @@ def save(data, name, relativePath="../output/",fullPath=None):
 
 
 
-def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type, matrix_path_ICM_length):
+def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv', matrix_path_ICM_length='data/data_ICM_length.csv'):
     columns = ["UserID", "ItemID", "Interaction", "Data"]
     n_items = 0
     URM = pd.read_csv(filepath_or_buffer=matrix_path_URM,
