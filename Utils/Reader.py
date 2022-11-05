@@ -7,6 +7,7 @@ import pandas as pd
 import scipy.sparse as sps
 from matplotlib import pyplot
 from tqdm import tqdm
+import os
 
 from Utils.Evaluator import EvaluatorHoldout
 
@@ -44,7 +45,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
     if preprocess > 0:
         print("Preprocessing with mode: "+str(preprocess))
-        df_preprocess(matrix_df, saving=True, mode=preprocess)
+        df_preprocess(matrix_df, saving=False, mode=preprocess)
 
     print(len(matrix_df))
 
@@ -228,6 +229,7 @@ def get_user_segmentation(URM_train, URM_val, start_pos, end_pos):
 
 def merge(ICM_a, ICM_b):
     return sps.hstack([ICM_a, ICM_b])
+
 
 
 def save(data, name, relativePath="../output/",fullPath=None):
