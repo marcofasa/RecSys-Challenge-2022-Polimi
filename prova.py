@@ -23,5 +23,5 @@ URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 #ItemKNNCBFRecommender(URM_train=URM_train,ICM_train=ICM_all)
 from Utils.Writer import Writer,NameRecommender
 
-a=Writer(NameRecommender.ItemKNNCFRecommenderTF_IDF,topK=355,shrink=488,URM=URM_train)
+a=Writer(NameRecommender.SLIM_BPR,topK=319,learning_rate=0.001,lambda1=0.01500,lambda2=0.330,URM=URM_train,n_epochs=350)
 a.makeSubmission()

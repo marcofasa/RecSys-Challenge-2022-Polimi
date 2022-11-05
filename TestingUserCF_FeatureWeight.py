@@ -3,7 +3,7 @@ from Data_manager.split_functions.split_train_validation_random_holdout import s
 from datetime import datetime
 from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
 import os
-
+from tqdm import tqdm
 
 
 
@@ -66,7 +66,7 @@ def save_data(phase):
     
 
 def training_phase():
-    for topK in x_tick_rnd_topK:
+    for topK in tqdm(x_tick_rnd_topK):
         for shrink in x_tick_rnd_shrink:
 
             #x_tick.append("topk {}, shrink {}".format(topK, shrink))
@@ -184,10 +184,6 @@ from Utils import Reader
 
 dirname = os.path.dirname(__file__)
 matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
-
-URM_train=Reader.read_train_csr(matrix_path,preprocess=3)
-
-print(URM_train)
 
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)
 URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage = 0.80)

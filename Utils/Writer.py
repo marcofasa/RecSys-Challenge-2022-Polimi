@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
+from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
 import os
 import csv
 import pandas as pd
@@ -8,9 +9,10 @@ class NameRecommender(Enum):
      ItemKNNCFRecommenderNone= "ItemKNNCFRecommenderNone"
      ItemKNNCFRecommenderBM25 = "ItemKNNCFRecommenderBM25"
      ItemKNNCFRecommenderTF_IDF="ItemKNNCFRecommenderTF_IDF"
+     SLIM_BPR="SLIM_BPR"
 class Writer(object):
 
-    def __init__(self,NameRecommender,URM,topK,shrink):
+    def __init__(self,NameRecommender,URM,topK,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None):
         self.NameRecommender=NameRecommender
         self.URM=URM
         self.topK=topK
@@ -27,6 +29,10 @@ class Writer(object):
         if (self.NameRecommender.name == "ItemKNNCFRecommenderTF_IDF"):
             self.Recommender = ItemKNNCFRecommender(URM_train=self.URM)
             self.Recommender.fit(topK=self.topK, shrink=self.topK, feature_weighting="TF-IDF")
+
+        if (self.NameRecommender.name == "SLIM_BPR"):
+            self.Recommender = SLIM_BPR_Cython(URM_train=self.URM)
+            self.Recommender.fit(topK=self.topK,epochs=n_epochs,lambda_i=lambda1,lambda_j=lambda2,learning_rate=learning_rate)
 
 
     def makeSubmission(self):

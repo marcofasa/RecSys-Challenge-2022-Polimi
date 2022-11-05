@@ -41,7 +41,7 @@ def order_MAP(Best_MAP_phase,Best_shrink_phase,Best_similarity_phase,Best_TopK_P
 # Write the best MAP with their name and parameters in a textfile in the directory Testing_Results
 def save_data(phase, Best_MAP_phase, Best_shrink_phase, Best_similarity_phase, Best_TopK_Phase):
     if (phase == "Training"):
-        file = open("Testing_Results/CF_Best_Training_New_Value_Old_Model.txt", "w+")
+        file = open("Testing_Results/CF_Best_Training_New_Value_Old_Model_" + str(multiprocessing.current_process())+".txt", "w+")
         for index in range(max_length_best):
             file.write(str(index) + ".  MAP: " + str(Best_MAP_phase[index]) + "     Shrink: " + str(Best_shrink_phase[index]) + "   topK: " + str(
                 Best_TopK_Phase[index]) + "   similarity:  " + str(Best_similarity_phase[index]) + "\n")
@@ -50,7 +50,7 @@ def save_data(phase, Best_MAP_phase, Best_shrink_phase, Best_similarity_phase, B
         file.close()
         return
     elif (phase == "Validation"):
-        file = open("Testing_Results/CF_Best_Validation_New_Value_Old_model.txt", "w+")
+        file = open("Testing_Results/CF_Best_Validation_New_Value_Old_model_" + str(multiprocessing.current_process())+".txt", "w+")
         for index in range(max_length_best):
             file.write(str(index) + ".  MAP: " + str(Best_MAP_phase[index]) + "     Shrink: " + str(Best_shrink_phase[index]) + "   topK: " + str(
                 Best_TopK_Phase[index])+  "   similarity:  " + str(Best_similarity_phase[index]) + "\n")
@@ -59,7 +59,7 @@ def save_data(phase, Best_MAP_phase, Best_shrink_phase, Best_similarity_phase, B
         file.close()
         return
     elif (phase == "Test"):
-        file = open("Testing_Results/CF_Best_Test_New_Value_Old_Model.txt", "w+")
+        file = open("Testing_Results/CF_Best_Test_New_Value_Old_Model_" + str(multiprocessing.current_process())+".txt", "w+")
         for index in range(max_length_best):
             file.write(str(index) + ".  MAP: " + str(Best_MAP_phase[index]) + "     Shrink: " + str(Best_shrink_phase[index]) + "   topK: " + str(
                 Best_TopK_Phase[index]) + "   similarity:  " + str(Best_similarity_phase[index]) + "\n")
@@ -72,7 +72,7 @@ def save_data(phase, Best_MAP_phase, Best_shrink_phase, Best_similarity_phase, B
 
 def training_phase():
     for similarity in tqdm(similarities):
-        for topK in x_tick_rnd_topK:
+        for topK in tqdm(x_tick_rnd_topK, desc="training..."):
             for shrink in x_tick_rnd_shrink:
                 # x_tick.append("topk {}, shrink {}".format(topK, shrink))
                 collaborative_recommender_TF_IDF.fit(shrink=shrink, topK=topK, feature_weighting="TF-IDF", similarity=similarity)
@@ -95,6 +95,7 @@ def validation_phase():
     start_time = datetime.now().strftime("%D:  %H:%M:%S")
     # knnn contenet filter recomennded TF_IDF feature weighting
     content_recommender_TF_IDF = ItemKNNCFRecommender(URM_validation)
+    evaluator_test = EvaluatorHoldout(URM_validation, cutoff_list=[10])
 
     for i in tqdm(range(max_length_best)):
         content_recommender_TF_IDF.fit(shrink=Best_Shrink_training[i], topK=Best_topK_training[i],
@@ -117,6 +118,7 @@ def testing_phase():
     start_time = datetime.now().strftime("%D:  %H:%M:%S")
     # knnn contenet filter recomennded TF_IDF feature weighting
     content_recommender_TF_IDF = ItemKNNCFRecommender(URM_test)
+    evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
 
     for i in tqdm(range(max_length_best), desc="testing phase..."):
 
@@ -151,14 +153,14 @@ Best_similarities_validation=[]
 Best_similarities_testing=[]
 
 # Parameter that declare how many of the best parameter to save, it will be the number of loops for the validantion and test phase, MUST BE GREATER OR EQUAL THAN THE SIZE PARAMETER SQURED
-max_length_best = 150
+max_length_best = 50
 
 # Variable for the num of parameter for shrink and topKin the test phase, the number of loops will be this number squared
-size_parameter = 6
+size_parameter = 10
 # Start timeb
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #similarities to test
-similarities=["pearson", "jaccard", "tanimoto", "adjusted", "euclidean", "cosine"]
+similarities=["cosine"]
 
 
 # random search with the log uniform
@@ -200,11 +202,11 @@ def start_parameter_tuning(x):
 
     global x_tick_rnd_topK
     global x_tick_rnd_shrink
-    x_tick_rnd_topK = loguniform.rvs(10, 500, size=size_parameter).astype(int)
+    x_tick_rnd_topK = loguniform.rvs(x, 580, size=size_parameter).astype(int)
     x_tick_rnd_topK.sort()
     x_tick_rnd_topK = list(x_tick_rnd_topK)
 
-    x_tick_rnd_shrink = loguniform.rvs(10, 500, size=size_parameter).astype(int)
+    x_tick_rnd_shrink = loguniform.rvs(x, 500, size=size_parameter).astype(int)
     # x_tick_rnd_shrink=np.random.randint(10,size=10)
     x_tick_rnd_shrink.sort()
     x_tick_rnd_shrink = list(x_tick_rnd_shrink)
@@ -215,7 +217,10 @@ def start_parameter_tuning(x):
 
 
 pool = multiprocessing.Pool(processes=int(multiprocessing.cpu_count()), maxtasksperchild=1)
-n_thread= np.zeros(multiprocessing.cpu_count()-2)
+
+n_thread=[350,380,300,500,450,420]
+
+
 pool.map(start_parameter_tuning, n_thread)
 
 
