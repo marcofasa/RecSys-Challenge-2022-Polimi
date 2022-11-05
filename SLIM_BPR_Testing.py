@@ -244,7 +244,7 @@ size_parameter = 3
 # Start time
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #Paramter for the number of epoch
-num_epochs=350
+num_epochs=300
 x_tick_lamda1 = []
 x_tick_lamda2 = []
 learning_rate_array = []
@@ -257,11 +257,7 @@ SLIM_BPR = SLIM_BPR_Cython(URM_train)
 collaborative_None_MAP = []
 
 pool = multiprocessing.Pool(processes=int(multiprocessing.cpu_count()), maxtasksperchild=1)
-
-n_thread=[350,380,300,500,500,600]
-
-
-pool.map(start_parameter_tuning, range(4))
+pool.map(start_parameter_tuning, range(12))
 
 
 #!!!!!!!!!!to compile cython run :  python CythonCompiler/compile_script.py Recommenders/SLIM/Cython/SLIM_BPR_Cython_Epoch.pyx build_ext --inplace!!!!!!!!!!!!
