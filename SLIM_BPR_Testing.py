@@ -182,7 +182,7 @@ matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 
 rewatches_path=os.path.join(dirname, "data/rewatches.csv")
 
-URM_train=pd.read_csv(rewatches_path,sep=",",
+'''URM_train=pd.read_csv(rewatches_path,sep=",",
                             skiprows=1,
                             header=None,
                             dtype={0: int, 1: int, 2: int},
@@ -196,7 +196,8 @@ URM_train = sp.coo_matrix((URM_train[columns[2]].values,
                          ))
 
 URM_train.tocsr()
-URM_train=read_train_csr(matrix_path=matrix_path)
+'''
+URM_train=Read.read_train_csr(matrix_path=matrix_path,preprocess=3)
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
 URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
 URM_normal=Read.read_train_csr(matrix_path=matrix_path)
