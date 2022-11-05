@@ -2,17 +2,21 @@ from enum import Enum
 import numpy as np
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
+from FirstIbrid import FirstIbrid
 import os
 import csv
 import pandas as pd
+
 class NameRecommender(Enum):
      ItemKNNCFRecommenderNone= "ItemKNNCFRecommenderNone"
      ItemKNNCFRecommenderBM25 = "ItemKNNCFRecommenderBM25"
      ItemKNNCFRecommenderTF_IDF="ItemKNNCFRecommenderTF_IDF"
      SLIM_BPR="SLIM_BPR"
+     Hybrid="Hybrid"
 class Writer(object):
 
-    def __init__(self,NameRecommender,URM,topK,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None):
+    def __init__(self,NameRecommender,URM,topK,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None,
+                 URM_rewatches=None):
         self.NameRecommender=NameRecommender
         self.URM=URM
         self.topK=topK
@@ -33,7 +37,9 @@ class Writer(object):
         if (self.NameRecommender.name == "SLIM_BPR"):
             self.Recommender = SLIM_BPR_Cython(URM_train=self.URM)
             self.Recommender.fit(topK=self.topK,epochs=n_epochs,lambda_i=lambda1,lambda_j=lambda2,learning_rate=learning_rate)
-
+        if (self.NameRecommender.name == "Hybrid"):
+            self.Recommender = FirstIbrid(URM_train=self.URM,URM_rewatches=URM_rewatches)
+            self.Recommender.fit(topK=self.topK,n_epochs=n_epochs,lambda1=lambda1,lambda2=lambda2,learning_rate=learning_rate,topK_CF=343,shrink_CF=488)
 
     def makeSubmission(self):
         current_dir = os.path.abspath(os.path.dirname(__file__))
