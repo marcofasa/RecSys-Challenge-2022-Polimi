@@ -196,7 +196,6 @@ URM_train = sp.coo_matrix((URM_train[columns[2]].values,
                          ))
 
 URM_train.tocsr()
-URM_train=read_train_csr(matrix_path=matrix_path)
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
 URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
 URM_normal=Read.read_train_csr(matrix_path=matrix_path)
