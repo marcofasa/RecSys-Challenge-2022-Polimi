@@ -259,7 +259,7 @@ SLIM_BPR = SLIM_BPR_Cython(URM_train)
 collaborative_None_MAP = []
 
 pool = multiprocessing.Pool(processes=int(multiprocessing.cpu_count()), maxtasksperchild=1)
-pool.map(start_parameter_tuning, range(12))
+pool.map(start_parameter_tuning, range(9))
 
 
 #!!!!!!!!!!to compile cython run :  python CythonCompiler/compile_script.py Recommenders/SLIM/Cython/SLIM_BPR_Cython_Epoch.pyx build_ext --inplace!!!!!!!!!!!!
