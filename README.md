@@ -149,3 +149,90 @@ lambda_weights = 0.66
 * Continue trying to add the third-best, fourth-best and so on...
 * If you are lucky every now and then a new model can be added and the quality improves. (again, result not guaranteed)
 
+## Segmentation
+
+    import matplotlib.pyplot as plt
+    %matplotlib inline
+    
+    from Recommenders.NonPersonalizedRecommender import TopPop
+    from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
+    from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
+    from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
+    from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender
+    from Recommenders.GraphBased.P3alphaRecommender import P3alphaRecommender
+    from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
+    from Recommenders.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython, MatrixFactorization_FunkSVD_Cython, MatrixFactorization_AsySVD_Cython
+    from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender
+    from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
+    from Recommenders.MatrixFactorization.NMFRecommender import NMFRecommender
+    
+    MAP_recommender_per_group = {}
+    
+    collaborative_recommender_class = {"TopPop": TopPop,
+    "UserKNNCF": UserKNNCFRecommender,
+    "ItemKNNCF": ItemKNNCFRecommender,
+    "P3alpha": P3alphaRecommender,
+    "RP3beta": RP3betaRecommender,
+    "PureSVD": PureSVDRecommender,
+    "NMF": NMFRecommender,
+    "FunkSVD": MatrixFactorization_FunkSVD_Cython,
+    "SLIMBPR": SLIM_BPR_Cython,
+    }
+    
+    content_recommender_class = {"ItemKNNCBF": ItemKNNCBFRecommender,
+    "ItemKNNCFCBF": ItemKNN_CFCBF_Hybrid_Recommender
+    }
+    
+    recommender_object_dict = {}
+    
+    for label, recommender_class in collaborative_recommender_class.items():
+    recommender_object = recommender_class(URM_train)
+    recommender_object.fit()
+    recommender_object_dict[label] = recommender_object
+    
+    for label, recommender_class in content_recommender_class.items():
+    recommender_object = recommender_class(URM_train, ICM_genres)
+    recommender_object.fit()
+    recommender_object_dict[label] = recommender_object
+    cutoff = 10
+    
+    for group_id in range(0, 20):
+    
+        start_pos = group_id*block_size
+        end_pos = min((group_id+1)*block_size, len(profile_length))
+        
+        users_in_group = sorted_users[start_pos:end_pos]
+        
+        users_in_group_p_len = profile_length[users_in_group]
+        
+        print("Group {}, #users in group {}, average p.len {:.2f}, median {}, min {}, max {}".format(
+            group_id, 
+            users_in_group.shape[0],
+            users_in_group_p_len.mean(),
+            np.median(users_in_group_p_len),
+            users_in_group_p_len.min(),
+            users_in_group_p_len.max()))
+        
+        
+        users_not_in_group_flag = np.isin(sorted_users, users_in_group, invert=True)
+        users_not_in_group = sorted_users[users_not_in_group_flag]
+        
+        evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[cutoff], ignore_users=users_not_in_group)
+        
+        for label, recommender in recommender_object_dict.items():
+            result_df, _ = evaluator_test.evaluateRecommender(recommender)
+            if label in MAP_recommender_per_group:
+                MAP_recommender_per_group[label].append(result_df.loc[cutoff]["MAP"])
+            else:
+                MAP_recommender_per_group[label] = [result_df.loc[cutoff]["MAP"]]
+        
+    _ = plt.figure(figsize=(16, 9))
+    for label, recommender in recommender_object_dict.items():
+    results = MAP_recommender_per_group[label]
+    plt.scatter(x=np.arange(0,len(results)), y=results, label=label)
+    plt.ylabel('MAP')
+    plt.xlabel('User Group')
+    plt.legend()
+    plt.show()
+
+Guarda i gruppi nel plot che hanno lo stesso comportamento (Pallini colorati posizionati nello stesso modo)
