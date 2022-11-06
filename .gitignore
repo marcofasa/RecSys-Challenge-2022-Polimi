@@ -100,7 +100,7 @@ celerybeat-schedule
 .venv
 venv/
 ENV/
-
+*.yml
 # Spyder project settings
 .spyderproject
 .spyproject
