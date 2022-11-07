@@ -13,9 +13,12 @@ from Utils.Evaluator import EvaluatorHoldout
 
 columns = ["UserID", "ItemID", "Interaction", "Data"]
 
+def df_col_normalize(df, colToChange, valsToPlace):
+    df[colToChange] = df[colToChange].replace(valsToPlace)
+
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=0, display=False):
+                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -42,6 +45,8 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
     matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
+    if switch:
+        df_col_normalize(matrix_df, colToChange=column,valsToPlace= dictionary)
 
     if preprocess > 0:
         print("Preprocessing with mode: "+str(preprocess))
@@ -76,8 +81,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     #  {oldval1: newval1 , oldval2: newval1,...}
 
 
-def df_col_normalize(df, colToChange, valsToPlace):
-    df[colToChange] = df[colToChange].replace(valsToPlace)
+
 
 
 def df_preprocess(df, saving=True, mode=0):
@@ -197,7 +201,7 @@ def read_ICM_length(matrix_format="csr", clean=True, matrix_path="../data/data_I
         return sps.csc_matrix(pd.DataFrame(data=df, columns=["EPLength"]).to_numpy())
 
 
-def read_ICM_type(matrix_format="csr", clean=True, matrix_path="../data/data_ICM_type.csv"):
+def read_ICM_type(matrix_path,matrix_format="csr", clean=True ):
     df = pd.read_csv(filepath_or_buffer=matrix_path,
                      sep=",",
                      skiprows=1,
