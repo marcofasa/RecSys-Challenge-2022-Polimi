@@ -201,7 +201,7 @@ class Evaluator(object):
 
     EVALUATOR_NAME = "Evaluator_Base_Class"
 
-    def __init__(self, URM_test, cutoff_list, min_ratings_per_user=1, exclude_seen=True,
+    def __init__(self, URM_test, cutoff_list, isRanking=False,min_ratings_per_user=1, exclude_seen=True,
                  diversity_object = None,
                  ignore_items = None,
                  ignore_users = None,
@@ -210,7 +210,7 @@ class Evaluator(object):
         super(Evaluator, self).__init__()
 
         self.verbose = verbose
-
+        self.isRanking=isRanking
         if ignore_items is None:
             self.ignore_items_flag = False
             self.ignore_items_ID = np.array([])
@@ -273,7 +273,7 @@ class Evaluator(object):
         self._start_time_print = time.time()
         self._n_users_evaluated = 0
 
-        results_dict = self._run_evaluation_on_selected_users(recommender_object, self.users_to_evaluate)
+        results_dict = self._run_evaluation_on_selected_users(self.isRanking,recommender_object, self.users_to_evaluate)
 
 
         if self._n_users_evaluated > 0:
@@ -330,16 +330,16 @@ class Evaluator(object):
 
 
 
-    def _compute_metrics_on_recommendation_list(self, test_user_batch_array, recommended_items_batch_list, scores_batch, results_dict):
+    def _compute_metrics_on_recommendation_list(self, test_user_batch_array, recommended_items_batch_list,results_dict, scores_batch=None):
 
         assert len(recommended_items_batch_list) == len(test_user_batch_array), "{}: recommended_items_batch_list contained recommendations for {} users, expected was {}".format(
             self.EVALUATOR_NAME, len(recommended_items_batch_list), len(test_user_batch_array))
+        if scores_batch!=None:
+            assert scores_batch.shape[0] == len(test_user_batch_array), "{}: scores_batch contained scores for {} users, expected was {}".format(
+                self.EVALUATOR_NAME, scores_batch.shape[0], len(test_user_batch_array))
 
-        assert scores_batch.shape[0] == len(test_user_batch_array), "{}: scores_batch contained scores for {} users, expected was {}".format(
-            self.EVALUATOR_NAME, scores_batch.shape[0], len(test_user_batch_array))
-
-        assert scores_batch.shape[1] == self.n_items, "{}: scores_batch contained scores for {} items, expected was {}".format(
-            self.EVALUATOR_NAME, scores_batch.shape[1], self.n_items)
+            assert scores_batch.shape[1] == self.n_items, "{}: scores_batch contained scores for {} items, expected was {}".format(
+                self.EVALUATOR_NAME, scores_batch.shape[1], self.n_items)
 
 
         # Compute recommendation quality for each user in batch
@@ -424,7 +424,7 @@ class EvaluatorHoldout(Evaluator):
 
     EVALUATOR_NAME = "EvaluatorHoldout"
 
-    def __init__(self, URM_test_list, cutoff_list, min_ratings_per_user=1, exclude_seen=True,
+    def __init__(self, URM_test_list, cutoff_list, min_ratings_per_user=1, exclude_seen=True,isRanking=None,
                  diversity_object = None,
                  ignore_items = None,
                  ignore_users = None,
@@ -434,14 +434,14 @@ class EvaluatorHoldout(Evaluator):
         super(EvaluatorHoldout, self).__init__(URM_test_list, cutoff_list,
                                                diversity_object = diversity_object,
                                                min_ratings_per_user =min_ratings_per_user, exclude_seen=exclude_seen,
-                                               ignore_items = ignore_items, ignore_users = ignore_users,
+                                               ignore_items = ignore_items, ignore_users = ignore_users, isRanking=isRanking,
                                                verbose = verbose)
 
 
 
 
 
-    def _run_evaluation_on_selected_users(self, recommender_object, users_to_evaluate, block_size = None):
+    def _run_evaluation_on_selected_users(self,isRanking, recommender_object, users_to_evaluate, block_size = None):
 
         if block_size is None:
             # Reduce block size if estimated memory requirement exceeds 4 GB
@@ -473,13 +473,18 @@ class EvaluatorHoldout(Evaluator):
             user_batch_start = user_batch_end
 
             # Compute predictions for a batch of users using vectorization, much more efficient than computing it one at a time
-            recommended_items_batch_list, scores_batch = recommender_object.recommend(test_user_batch_array,
-                                                                      remove_seen_flag=self.exclude_seen,
-                                                                      cutoff = self.max_cutoff,
-                                                                      remove_top_pop_flag=False,
-                                                                      remove_custom_items_flag=self.ignore_items_flag,
-                                                                      return_scores = True
-                                                                     )
+
+            if(isRanking==False):
+                recommended_items_batch_list, scores_batch = recommender_object.recommend(test_user_batch_array,
+                                                                          remove_seen_flag=self.exclude_seen,
+                                                                          cutoff = self.max_cutoff,
+                                                                          remove_top_pop_flag=False,
+                                                                          remove_custom_items_flag=self.ignore_items_flag,
+                                                                          return_scores = True
+                                                                         )
+            else:
+                recommended_items_batch_list= recommender_object.recomendation_ranking(test_user_batch_array)
+                scores_batch=None
 
             results_dict = self._compute_metrics_on_recommendation_list(test_user_batch_array = test_user_batch_array,
                                                          recommended_items_batch_list = recommended_items_batch_list,
