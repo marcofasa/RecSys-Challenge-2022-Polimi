@@ -299,6 +299,7 @@ def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv
     n_items = len(item_original_ID_to_index)
     n_features = len(feature_original_ID_to_index)
 
+
     URM_all = sps.csr_matrix((URM[columns[3]].values,
                               (URM[columns[0]].values, URM[columns[1]].values)),
                              shape=(n_users, n_items))

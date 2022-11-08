@@ -13,13 +13,13 @@ class Rankings(BaseItemSimilarityMatrixRecommender):
 
     RECOMMENDER_NAME = "SLIM_ITEMKNNCF"
 
-    def __init__(self, URM_train):
+    def __init__(self, URM_train,URM_rewatches):
         super(Rankings, self).__init__(URM_train)
 
         self.URM_train = check_matrix(URM_train.copy(), 'csr')
         self.URM_rewatches= URM_train
         self.itemKNNCF = ItemKNNCFRecommender(URM_train)
-        self.SLIM = SLIM_BPR_Cython(URM_train)
+        self.SLIM = SLIM_BPR_Cython(URM_rewatches)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
             feature_weighting_CF="TF-IDF", alpha=0.7,
@@ -30,10 +30,10 @@ class Rankings(BaseItemSimilarityMatrixRecommender):
                             feature_weighting=feature_weighting_CF)
         self.SLIM.fit(topK=topK,epochs=n_epochs,lambda_i=lambda1,lambda_j=lambda2,learning_rate=learning_rate)
 
-    def recomendation_ranking(self, user_id_array):
+    def recomendation_ranking(self, user_id_array=None,user_id=None):
         final_raccomandation = {}
 
-        if type(user_id_array)==int:
+        if user_id != None:
 
             final_raccomandation_user = []
             counter_SLIM = 0
@@ -59,12 +59,12 @@ class Rankings(BaseItemSimilarityMatrixRecommender):
                         counter_SLIM += 1
             return final_raccomandation_user
         else:
-            for user_id in user_id_array:
+            for user_id in range(len(user_id_array)):
                 final_raccomandation_user = []
                 counter_SLIM = 0
                 counter_Item = 0
-                SLIM_recomandation = self.SLIM.recommend(user_id_array=user_id, cutoff=10)
-                Item_recomandation = self.itemKNNCF.recommend(user_id_array=user_id, cutoff=10)
+                SLIM_recomandation = self.SLIM.recommend(user_id_array=user_id_array[user_id], cutoff=10)
+                Item_recomandation = self.itemKNNCF.recommend(user_id_array=user_id_array[user_id], cutoff=10)
                 for i in range(9):
                     if i%2==0:
                         while (final_raccomandation_user.count((Item_recomandation[counter_Item])) != 0):
@@ -80,7 +80,7 @@ class Rankings(BaseItemSimilarityMatrixRecommender):
                         else:
                             final_raccomandation_user.append(SLIM_recomandation[counter_SLIM])
                             counter_SLIM += 1
-                final_raccomandation[user_id]=final_raccomandation_user
+                final_raccomandation[user_id] = final_raccomandation_user
 
             return final_raccomandation
 

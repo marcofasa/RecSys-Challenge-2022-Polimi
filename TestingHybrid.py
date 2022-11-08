@@ -1,10 +1,11 @@
+from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
 from Utils.Evaluator import EvaluatorHoldout
 import numpy as np
 from Data_manager.split_functions.split_train_validation_random_holdout import \
     split_train_in_two_percentage_global_sample
 from datetime import datetime
 import time
-from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
+from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
 import os
 import Utils.Reader as Read
 from scipy.stats import loguniform
@@ -184,23 +185,23 @@ matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 
 rewatches_path=os.path.join(dirname, "data/rewatches.csv")
 
-URM_train=pd.read_csv(rewatches_path,sep=",",
+URM_rewatches=pd.read_csv(rewatches_path,sep=",",
                             skiprows=1,
                             header=None,
                             dtype={0: int, 1: int, 2: int},
                             engine='python')
 
 columns=["UserID","ItemID","data"]
-URM_train.columns=columns
-print(URM_train)
-URM_train = sp.coo_matrix((URM_train[columns[2]].values,
-                         (URM_train[columns[0]].values, URM_train[columns[1]].values)
+URM_rewatches.columns=columns
+URM_rewatches = sp.coo_matrix((URM_rewatches[columns[2]].values,
+                         (URM_rewatches[columns[0]].values, URM_rewatches[columns[1]].values)
                          ))
+URM_rewatches.tocsr()
 
-URM_train.tocsr()
-URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
+
+URM=Read.read_train_csr(matrix_path=matrix_path)
+URM_train, URM_test = split_train_in_two_percentage_global_sample(URM, train_percentage=0.60)
 URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
-URM_normal=Read.read_train_csr(matrix_path=matrix_path)
 
 
 
@@ -226,14 +227,15 @@ URM_normal = sp.csr_matrix(URM_normal[2], (user_ids_training, item_ids_training)
 Best_MAP_training = []
 Best_MAP_validation = []
 Best_MAP_testing=[]
-
 # Keep the reference to the lambda1, lambda2 e learing_rate e  parameter sorted as the best MAP
 Best_Learning_Rate_training = []
 Best_Learning_Rate_validation=[]
 Best_Learning_Rate_testing=[]
+
 Best_Lambda1_training = []
 Best_lambda1_validation=[]
 Best_Lambda1_testing=[]
+
 Best_Lambda2_training = []
 Best_lambda2_validation=[]
 Best_Lambda2_testing=[]
@@ -242,9 +244,9 @@ Best_topK_training = []
 Best_topK_validation=[]
 Best_topK_testing=[]
 # Parameter that declare how many of the best parameter to save, it will be the number of loops for the validantion and test phase
-max_length_best = 40
+max_length_best = 10
 # Variable for the num of parameter for topKin,lambda2 e lambda1 the test phase, the number of loops will be this number at the fourth
-size_parameter = 4
+size_parameter = 3
 # Start time
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #Paramter for the number of epoch
@@ -254,12 +256,14 @@ x_tick_lamda2 = []
 learning_rate_array = []
 x_tick_rnd_topK=[]
 
-evaluator_test = EvaluatorHoldout(URM_normal, cutoff_list=[10])
+evaluator_test = EvaluatorHoldout(URM, cutoff_list=[10])
 
 # knnn contenet filter recomennded none feature weighting
-SLIM_BPR = SLIM_BPR_Cython(URM_train)
+Hybrid = ItemKNN_CFCBF_Hybrid_Recommender(URM_train=URM_train, ICM)
 collaborative_None_MAP = []
 
-start_parameter_tuning(2)
+pool = multiprocessing.Pool(processes=int(multiprocessing.cpu_count()), maxtasksperchild=1)
+pool.map(start_parameter_tuning, range(2))
+
 
 #!!!!!!!!!!to compile cython run :  python CythonCompiler/compile_script.py Recommenders/SLIM/Cython/SLIM_BPR_Cython_Epoch.pyx build_ext --inplace!!!!!!!!!!!!

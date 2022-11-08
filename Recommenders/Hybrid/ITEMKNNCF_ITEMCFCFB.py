@@ -2,32 +2,33 @@ from Recommenders.BaseSimilarityMatrixRecommender import BaseItemSimilarityMatri
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
 from Recommenders.Recommender_utils import check_matrix
+from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
 import numpy as np
 
-class FirstIbrid(BaseItemSimilarityMatrixRecommender):
+class ITEMKNNCF_ITEMCFCBF(BaseItemSimilarityMatrixRecommender):
     """ ItemKNNScoresHybridRecommender
     Hybrid of two prediction scores R = R1*alpha + R2*(1-alpha)
     NB: Rec_1 is itemKNNCF, Rec_2 is SLIM
     """
 
-    RECOMMENDER_NAME = "SLIM_ITEMKNNCF"
+    RECOMMENDER_NAME = "ITEMCFCBF_ITEMKNNCF"
 
-    def __init__(self, URM_train, URM_rewatches):
-        super(FirstIbrid, self).__init__(URM_train)
+    def __init__(self, URM_train, ICM_train):
+        super(ITEMKNNCF_ITEMCFCBF, self).__init__(URM_train)
 
         self.URM_train = check_matrix(URM_train.copy(), 'csr')
         self.URM_rewatches= URM_train
         self.itemKNNCF = ItemKNNCFRecommender(URM_train)
-        self.SLIM = SLIM_BPR_Cython(URM_rewatches)
+        self.ItemKNNCFCBF = ItemKNN_CFCBF_Hybrid_Recommender(URM_train,ICM_train)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
             feature_weighting_CF="TF-IDF", alpha=0.7,
-            topK=319, learning_rate=0.001  , n_epochs=300,lambda1=0.150,lambda2=0.3, norm_scores=False):
+            topK=319, shrink=300, feature_weighting="TF-IDF",  norm_scores=True):
         self.alpha = alpha
         self.norm_scores = norm_scores
         self.itemKNNCF.fit(topK=topK_CF, shrink=shrink_CF, similarity=similarity_CF,
-                            feature_weighting=feature_weighting_CF)
-        self.SLIM.fit(topK=topK,epochs=n_epochs,lambda_i=lambda1,lambda_j=lambda2,learning_rate=learning_rate)
+                            feature_weighting=feature_weighting)
+        self.ItemKNNCFCBF.fit()
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
         """
@@ -38,7 +39,7 @@ class FirstIbrid(BaseItemSimilarityMatrixRecommender):
         """
 
         item_scores1 = self.itemKNNCF._compute_item_score(user_id_array, items_to_compute)
-        item_scores2 = self.SLIM._compute_item_score(user_id_array, items_to_compute)
+        item_scores2 = self.ItemKNNCFCBF._compute_item_score(user_id_array, items_to_compute)
 
         if self.norm_scores:
             mean1 = np.mean(item_scores1)
