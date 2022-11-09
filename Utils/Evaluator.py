@@ -334,12 +334,12 @@ class Evaluator(object):
 
         assert len(recommended_items_batch_list) == len(test_user_batch_array), "{}: recommended_items_batch_list contained recommendations for {} users, expected was {}".format(
             self.EVALUATOR_NAME, len(recommended_items_batch_list), len(test_user_batch_array))
-        if scores_batch!=None:
-            assert scores_batch.shape[0] == len(test_user_batch_array), "{}: scores_batch contained scores for {} users, expected was {}".format(
-                self.EVALUATOR_NAME, scores_batch.shape[0], len(test_user_batch_array))
 
-            assert scores_batch.shape[1] == self.n_items, "{}: scores_batch contained scores for {} items, expected was {}".format(
-                self.EVALUATOR_NAME, scores_batch.shape[1], self.n_items)
+       # assert scores_batch.shape[0] == len(test_user_batch_array), "{}: scores_batch contained scores for {} users, expected was {}".format(
+        #        self.EVALUATOR_NAME, scores_batch.shape[0], len(test_user_batch_array))
+
+        #assert scores_batch.shape[1] == self.n_items, "{}: scores_batch contained scores for {} items, expected was {}".format(
+         #       self.EVALUATOR_NAME, scores_batch.shape[1], self.n_items)
 
 
         # Compute recommendation quality for each user in batch
@@ -424,7 +424,7 @@ class EvaluatorHoldout(Evaluator):
 
     EVALUATOR_NAME = "EvaluatorHoldout"
 
-    def __init__(self, URM_test_list, cutoff_list, min_ratings_per_user=1, exclude_seen=True,isRanking=None,
+    def __init__(self, URM_test_list, cutoff_list, min_ratings_per_user=1, exclude_seen=True,isRanking=False,
                  diversity_object = None,
                  ignore_items = None,
                  ignore_users = None,
@@ -474,17 +474,17 @@ class EvaluatorHoldout(Evaluator):
 
             # Compute predictions for a batch of users using vectorization, much more efficient than computing it one at a time
 
-            if(isRanking==False):
-                recommended_items_batch_list, scores_batch = recommender_object.recommend(test_user_batch_array,
-                                                                          remove_seen_flag=self.exclude_seen,
-                                                                          cutoff = self.max_cutoff,
-                                                                          remove_top_pop_flag=False,
-                                                                          remove_custom_items_flag=self.ignore_items_flag,
-                                                                          return_scores = True
-                                                                         )
-            else:
-                recommended_items_batch_list= recommender_object.recomendation_ranking(test_user_batch_array)
-                scores_batch=None
+
+            recommended_items_batch_list, scores_batch = recommender_object.recommend(test_user_batch_array,
+                                                                              remove_seen_flag=self.exclude_seen,
+                                                                              cutoff = self.max_cutoff,
+                                                                              remove_top_pop_flag=False,
+                                                                              remove_custom_items_flag=self.ignore_items_flag,
+                                                                              return_scores = True)
+
+            #else:
+             #   recommended_items_batch_list= recommender_object.recomendation_ranking(user_id_array=test_user_batch_array)
+              #  scores_batch=None
 
             results_dict = self._compute_metrics_on_recommendation_list(test_user_batch_array = test_user_batch_array,
                                                          recommended_items_batch_list = recommended_items_batch_list,
@@ -564,6 +564,7 @@ class EvaluatorNegativeItemSample(Evaluator):
         for test_user in users_to_evaluate:
 
             items_to_compute = self._get_user_specific_items_to_compute(test_user)
+
 
             recommended_items, all_items_predicted_ratings = recommender_object.recommend(np.atleast_1d(test_user),
                                                               remove_seen_flag=self.exclude_seen,

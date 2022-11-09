@@ -305,7 +305,7 @@ def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv
                              shape=(n_users, n_items))
 
     ICM_all_type = sps.csr_matrix((np.ones(len(ICM_type["ItemID"].values)),
-                                   (ICM_type["ItemID"].values, ICM_type["FeatureID"].values)),
+        o                           (ICM_type["ItemID"].values, ICM_type["FeatureID"].values)),
                                   shape=(n_items, n_features))
 
     ICM_all_length = sps.csr_matrix((np.ones(len(ICM_length["Data"].values)),

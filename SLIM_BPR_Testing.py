@@ -16,8 +16,8 @@ from tqdm import tqdm
 # Order the best map, with the same order with the name, topk and shrink
 
 # Order the best map, with the same order with the name, topk and shrink
-def order_MAP(Best_MAP_phase,Best_learning_rate_phase,Best_lambda1_phase,Best_lambda2_phase,Best_TopK_Phase,MAP,
-              lambda1,lambda2,learning_rate, topK):
+def order_MAP(Best_MAP_phase,Best_learning_rate_phase,Best_lambda1_phase,Best_lambda2_phase,Best_TopK_Phase,Best_alpha_phase, Best_epoque_phase,MAP,
+              lambda1,lambda2,learning_rate, topK, alpha, epoque):
     # Check if the MAP is less than the one alredy stored and insert it at that index
     for index in range(len(Best_MAP_phase)):
         if (Best_MAP_phase[index] < MAP):
@@ -26,6 +26,8 @@ def order_MAP(Best_MAP_phase,Best_learning_rate_phase,Best_lambda1_phase,Best_la
             Best_TopK_Phase.insert(index, topK)
             Best_lambda1_phase.insert(index, lambda1)
             Best_lambda2_phase.insert(index,lambda2)
+            Best_epoque_phase.insert(index,epoque)
+            Best_alpha_phase.insert(index,alpha)
 
             # If there was an adding and the length is >15, remove the last element
             if (len(Best_MAP_phase) > max_length_best):
@@ -34,6 +36,8 @@ def order_MAP(Best_MAP_phase,Best_learning_rate_phase,Best_lambda1_phase,Best_la
                 del Best_TopK_Phase[-1]
                 del Best_lambda1_phase[-1]
                 del Best_lambda2_phase[-1]
+                del Best_epoque_phase[-1]
+                del Best_alpha_phase[-1]
             return
 
     # If the array lenght is not 15, append the element
@@ -43,6 +47,8 @@ def order_MAP(Best_MAP_phase,Best_learning_rate_phase,Best_lambda1_phase,Best_la
         Best_lambda1_phase.append(lambda1)
         Best_TopK_Phase.append(topK)
         Best_lambda2_phase.append(lambda2)
+        Best_epoque_phase.append(epoque)
+        Best_alpha_phase.append(alpha)
 
     return
 
@@ -51,27 +57,28 @@ def order_MAP(Best_MAP_phase,Best_learning_rate_phase,Best_lambda1_phase,Best_la
 # Write the best MAP with their name and parameters in a textfile in the directory Testing_Results
 def save_data(phase):
     if (phase == "Training"):
-        file = open("Testing_Results/SLIM_Best_Training_"+ str(multiprocessing.current_process) + ".txt", "w+")
-        for index in range(len(Best_MAP_testing)):
+        file = open("Testing_Results/ITEMKNN_SLIM_Best_Training_"+ str(multiprocessing.current_process) + ".txt", "w+")
+        for index in range(len(Best_MAP_training)):
             file.write(str(index) + ".  MAP: " + str(Best_MAP_training[index]) + "     Learning rate: " +
                        str(Best_Learning_Rate_training[index]) + "   topK: " + str(
-                Best_topK_training[index]) +  "  lambda1 " + str(Best_Lambda1_training[index]) + "lamda2 " + str(Best_Lambda2_training[index]) + "\n")
+                Best_topK_training[index]) +  "  lambda1 " + str(Best_Lambda1_training[index]) + "lamda2 " + str(Best_Lambda2_training[index]) +
+                       " alpha= " + str( Best_alpha_training[index])+ "  epochs=  " + str(Best_epochs_training[index]) + "\n")
         file.write("\nStarted at:  " + str(start_time) + "\nFinished at (Date-Time):   " + str(
             datetime.now().strftime("%D:  %H:%M:%S")))
         file.close()
         return
     elif (phase == "Validation"):
-        file = open("Testing_Results/SLIM_Best_Validation_"+ str(multiprocessing.current_process) + ".txt", "w+")
+        file = open("Testing_Results/ITEMKNN_SLIM_Best_Validation_"+ str(multiprocessing.current_process) + ".txt", "w+")
         for index in range(max_length_best):
             file.write(str(index) + ".  MAP: " + str(Best_MAP_validation[index]) +"     Learning rate: " + str(Best_Learning_Rate_validation[index]) + "   topK: " + str(
                 Best_topK_validation[index]) + "  lambda1 " + str(Best_lambda1_validation[index]) + "lamda2 " + str(
-                Best_lambda2_validation[index]) + "\n")
+                Best_lambda2_validation[index]) + " alpha= " + str( Best_alpha_validation[index])+ "  epochs=  " + str(Best_epochs_validation[index]) +  "\n")
         file.write("\nStarted at:  " + str(start_time) + "\nFinished at (Date-Time):   " + str(
             datetime.now().strftime("%D:  %H:%M:%S")))
         file.close()
         return
     elif (phase == "Test"):
-        file = open("Testing_Results/SLIM_Best_Test_" + str(multiprocessing.current_process) + ".txt", "w+")
+        file = open("Testing_Results/ITEMKNN_SLIM_Best_Test_" + str(multiprocessing.current_process) + ".txt", "w+")
         for index in range(max_length_best):
             file.write(str(index) + ".  MAP: " + str(Best_MAP_testing[index]) + "     Learning rate: " + str(Best_Learning_Rate_testing[index]) + "   topK: " + str(
                 Best_topK_testing[index]) + "  lambda1 " + str(Best_Lambda1_testing[index]) + "lamda2 " + str(
@@ -83,22 +90,25 @@ def save_data(phase):
 
 
 def training_phase():
-    for topK in tqdm(x_tick_rnd_topK):
-        for learning_rate in tqdm(learning_rate_array ,desc="second cicle"):
-            for i in tqdm(range(size_parameter),desc="first circle"):
+    for epochs in tqdm(num_epochs):
+        for alpha_element in alpha:
+            for topK in x_tick_rnd_topK:
+                for learning_rate in tqdm(learning_rate_array ,desc="second cicle"):
+                    for i in tqdm(range(size_parameter),desc="first circle"):
 
-            # x_tick.append("topk {}, shrink {}".format(topK, shrink))
+                    # x_tick.append("topk {}, shrink {}".format(topK, shrink))
 
-                SLIM_BPR.fit(epochs=num_epochs,lambda_i=x_tick_lamda1[i],lambda_j=x_tick_lamda2[i],
-                             learning_rate=learning_rate,topK=topK)
+                        SLIM_BPR.fit(n_epochs=epochs,lambda1=x_tick_lamda1[i],lambda2=x_tick_lamda2[i],
+                                     learning_rate=learning_rate,topK=topK, alpha=alpha_element)
 
-                result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
-                print("This is the MAP " + str(result_df.loc[10]["MAP"]) + " with learning rate " + str(learning_rate) +
-                      " and topK " + str(topK) + " and lambda1 " + str(x_tick_lamda1[i]) + " and labda2  "+ str(x_tick_lamda2[i]))
-                order_MAP(MAP=result_df.loc[10]["MAP"], topK=topK,learning_rate=learning_rate,lambda1=x_tick_lamda1[i],lambda2=x_tick_lamda2[i],
-                          Best_learning_rate_phase=Best_Learning_Rate_training, Best_MAP_phase=Best_MAP_training, Best_TopK_Phase=Best_topK_training,
-                          Best_lambda1_phase=Best_Lambda1_training,Best_lambda2_phase=Best_Lambda2_training)
-    save_data(phase="Training")
+                        result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
+                        print("This is the MAP " + str(result_df.loc[10]["MAP"]) + " with learning rate " + str(learning_rate) +
+                              " and topK " + str(topK) + " and lambda1 " + str(x_tick_lamda1[i]) + " and labda2  "+ str(x_tick_lamda2[i]))
+                        order_MAP(MAP=result_df.loc[10]["MAP"], topK=topK,learning_rate=learning_rate,lambda1=x_tick_lamda1[i],lambda2=x_tick_lamda2[i],
+                                  Best_learning_rate_phase=Best_Learning_Rate_training, Best_MAP_phase=Best_MAP_training, Best_TopK_Phase=Best_topK_training,
+                                  Best_lambda1_phase=Best_Lambda1_training,Best_lambda2_phase=Best_Lambda2_training, Best_alpha_phase=Best_alpha_training,
+                                  Best_epoque_phase=Best_epochs_training, epoque=epochs,alpha=alpha_element)
+                        save_data(phase="Training")
 
     return
 
@@ -109,11 +119,11 @@ def training_phase():
 def validation_phase():
     global start_time
     start_time = datetime.now().strftime("%D:  %H:%M:%S")
-    #evaluator_test = EvaluatorHoldout(URM_validation_normal, cutoff_list=[10])
-    SLIM_BPR = SLIM_BPR_Cython(URM_validation)
+    evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
+    SLIM_BPR = ITEMKNNCF_SLIM_BPR(URM_validation,URM_rewatches=URM_rewatches)
     for i in tqdm(range(max_length_best)):
-        SLIM_BPR.fit(epochs=num_epochs, lambda_i=Best_Lambda1_training[i], lambda_j=Best_Lambda2_training[i],
-                     learning_rate=Best_Learning_Rate_training[i], topK=Best_topK_training[i])
+        SLIM_BPR.fit(n_epochs=Best_epochs_training[i], lambda1=Best_Lambda1_training[i], lambda2=Best_Lambda2_training[i],
+                     learning_rate=Best_Learning_Rate_training[i], topK=Best_topK_training[i], alpha=Best_alpha_training[i])
 
 
         result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
@@ -124,7 +134,9 @@ def validation_phase():
                   lambda2=Best_Lambda2_training[i],
                   Best_learning_rate_phase=Best_Learning_Rate_validation, Best_MAP_phase=Best_MAP_validation,
                   Best_TopK_Phase=Best_topK_validation,
-                  Best_lambda1_phase=Best_lambda1_validation, Best_lambda2_phase=Best_lambda2_validation)
+                  Best_lambda1_phase=Best_lambda1_validation, Best_lambda2_phase=Best_lambda2_validation,
+                 Best_alpha_phase = Best_alpha_validation,
+                           Best_epoque_phase = Best_epochs_validation, epoque = Best_epochs_training[i], alpha = Best_alpha_training[i])
 
     save_data(phase="Validation")
     return
@@ -134,10 +146,10 @@ def validation_phase():
 def testing_phase():
     global start_time
     start_time = datetime.now().strftime("%D:  %H:%M:%S")
-    #evaluator_test = EvaluatorHoldout(URM_test_normal, cutoff_list=[10])
-    SLIM_BPR = SLIM_BPR_Cython(URM_test)
+    evaluator_test = EvaluatorHoldout(URM_train, cutoff_list=[10])
+    SLIM_BPR = ITEMKNNCF_SLIM_BPR(URM_test,URM_rewatches=URM_rewatches)
     for i in tqdm(range(max_length_best)):
-        SLIM_BPR.fit(epochs=num_epochs, lambda_i=Best_lambda1_validation[i], lambda_j=Best_lambda2_validation[i], learning_rate=Best_Learning_Rate_validation[i],
+        SLIM_BPR.fit(n_epochs=num_epochs, lambda1=Best_lambda1_validation[i], lambda2=Best_lambda2_validation[i], learning_rate=Best_Learning_Rate_validation[i],
                      topK=Best_topK_validation[i])
 
         result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
@@ -159,7 +171,7 @@ def start_parameter_tuning(x):
     global x_tick_lamda2
     global  learning_rate_array
 
-    x_tick_rnd_topK = loguniform.rvs(50, 500, size=size_parameter).astype(int)
+    x_tick_rnd_topK = loguniform.rvs(200, 500, size=size_parameter).astype(int)
     x_tick_rnd_topK.sort()
     x_tick_rnd_topK = list(x_tick_rnd_topK)
 
@@ -168,13 +180,13 @@ def start_parameter_tuning(x):
 
     # Randomly select the array for the parameter of lambda 1,2 and learning rate
     for i in range(size_parameter):
-        x_tick_lamda1.append(round(np.random.uniform(0.00001, 0.5), 5))
-        x_tick_lamda2.append(round(np.random.uniform(0.00001, 0.5), 5))
+        x_tick_lamda1.append(np.random.uniform(0.00001, 0.5))
+        x_tick_lamda2.append(np.random.uniform(0.00001, 0.5))
         learning_rate_array.append(np.random.choice(possible_values_learning_rate))
 
     training_phase()
     validation_phase()
-    testing_phase()
+    #testing_phase()
 
 
 from sklearn.model_selection import train_test_split
@@ -197,10 +209,12 @@ URM_train = sp.coo_matrix((URM_train[columns[2]].values,
                          (URM_train[columns[0]].values, URM_train[columns[1]].values)
                          ))
 
-URM_train.tocsr()
-URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
-URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
-URM_normal=Read.read_train_csr(matrix_path=matrix_path)
+URM_rewatches=URM_train.tocsr()
+#URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
+#URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
+URM=Read.read_train_csr(matrix_path=matrix_path)
+URM_train, URM_test = split_train_in_two_percentage_global_sample(URM, train_percentage=0.70)
+URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
 
 
 
@@ -227,6 +241,11 @@ Best_MAP_training = []
 Best_MAP_validation = []
 Best_MAP_testing=[]
 
+Best_epochs_training=[]
+Best_epochs_validation=[]
+
+Best_alpha_training=[]
+Best_alpha_validation=[]
 # Keep the reference to the lambda1, lambda2 e learing_rate e  parameter sorted as the best MAP
 Best_Learning_Rate_training = []
 Best_Learning_Rate_validation=[]
@@ -248,16 +267,18 @@ size_parameter = 4
 # Start time
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #Paramter for the number of epoch
-num_epochs=300
+num_epochs=[100,200,300]
+alpha=[0.6,0.7]
 x_tick_lamda1 = []
 x_tick_lamda2 = []
 learning_rate_array = []
 x_tick_rnd_topK=[]
 
-evaluator_test = EvaluatorHoldout(URM_normal, cutoff_list=[10])
+evaluator_test = EvaluatorHoldout(URM_validation, cutoff_list=[10])
 
+from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
 # knnn contenet filter recomennded none feature weighting
-SLIM_BPR = SLIM_BPR_Cython(URM_train)
+SLIM_BPR = ITEMKNNCF_SLIM_BPR(URM_train,URM_rewatches)
 collaborative_None_MAP = []
 
 start_parameter_tuning(2)

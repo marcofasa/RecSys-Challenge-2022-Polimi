@@ -1,10 +1,12 @@
 from Recommenders.BaseSimilarityMatrixRecommender import BaseItemSimilarityMatrixRecommender
+from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
 from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
+from Recommenders.KNN.UserKNNCBFRecommender import UserKNNCBFRecommender
 from Recommenders.Recommender_utils import check_matrix
 import numpy as np
 
-class P3_ITEMKNNCF(BaseItemSimilarityMatrixRecommender):
+class P3_ITEMKNNCF(ItemKNNCBFRecommender ,BaseItemSimilarityMatrixRecommender):
     """ ItemKNNScoresHybridRecommender
     Hybrid of two prediction scores R = R1*alpha + R2*(1-alpha)
     NB: Rec_1 is itemKNNCF, Rec_2 is SLIM
@@ -17,7 +19,7 @@ class P3_ITEMKNNCF(BaseItemSimilarityMatrixRecommender):
 
         self.URM_train = check_matrix(URM_train.copy(), 'csr')
         self.URM_rewatches= URM_train
-        self.itemKNNCF = ItemKNN_CFCBF_Hybrid_Recommender(URM_train, ICM_train=ICM_train)
+        self.itemKNNCF = ItemKNN_CFCBF_Hybrid_Recommender(URM_train=URM_train, ICM_train=ICM_train)
         self.SLIM = RP3betaRecommender(URM_train)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=False,
