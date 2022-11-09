@@ -13,8 +13,12 @@ from Utils.Evaluator import EvaluatorHoldout
 
 columns = ["UserID", "ItemID", "Interaction", "Data"]
 
-def df_col_normalize(df, colToChange, valsToPlace):
-    df[colToChange] = df[colToChange].replace(valsToPlace)
+def df_col_normalize(df, colToChange, valsToPlace=None):
+    if valsToPlace==None:
+         #return (df[colToChange]-df[colToChange].mean())/df[colToChange].std() #std normalization
+         return (df[colToChange]-df[colToChange].min())/(df[colToChange].max()-df[colToChange].min())
+    else:
+         return  df[colToChange].replace(valsToPlace)
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
