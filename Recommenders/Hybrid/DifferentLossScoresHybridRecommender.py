@@ -2,8 +2,7 @@ from Recommenders.BaseRecommender import BaseRecommender
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.Recommender_utils import check_matrix
 from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
-
-
+from numpy import linalg as LA
 class DifferentLossScoresHybridRecommender(BaseRecommender):
     """ ScoresHybridRecommender
     Hybrid of two prediction scores R = R1/norm*alpha + R2/norm*(1-alpha) where R1 and R2 come from
