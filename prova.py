@@ -1,3 +1,4 @@
+import numpy as np
 import scipy.sparse as sp
 import pandas as pd
 from Data_manager.split_functions.split_train_validation_random_holdout import \
@@ -64,17 +65,28 @@ from Utils.Writer import Writer
 from Recommenders.Hybrid.Rankings import Rankings
 
 from Recommenders.Hybrid.P3_ITEMKNNCF import P3_ITEMKNNCF
-from  Recommenders.Hybrid.FirstLayer import FirstLayer
+from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLossScoresHybridRecommender
+
 #a=Writer(NameRecommender.SLIM_BPR,topK=319 , learning_rate=0.001  , n_epochs=300 ,lambda1=0.01578,lambda2=0.32905,URM=URM_rewatches)
 #a.makeSubmission()
 
 
 URM_train, URM_test= split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
 URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
+
+'''
 Hybrid= FirstLayer(URM_train=URM_train,URM_rewatches=URM_rewatches)
 Hybrid.fit( )
 evaluator = EvaluatorHoldout(URM_test_list=URM_validation, cutoff_list=[10], isRanking=True)
 
 result_df, _ = evaluator.evaluateRecommender(Hybrid)
 print("This is the MAP:" + str(result_df.loc[10]["MAP"]))
+'''
 
+Hybrid= DifferentLossScoresHybridRecommender(URM_train=URM_train,URM_rewatches=URM_rewatches)
+evaluator_validation=EvaluatorHoldout(URM_validation,cutoff_list=[10])
+for norm in [1, 2, np.inf, -np.inf]:
+
+    Hybrid.fit(norm, alpha = 0.66)
+    result_df, _ = evaluator_validation.evaluateRecommender(Hybrid)
+    print("Norm: {}, Result: {}".format(norm, result_df.loc[10]["MAP"]))
