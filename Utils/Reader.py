@@ -285,6 +285,7 @@ def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv
     URM.columns = columns
 
     ICM_type = pd.read_csv(filepath_or_buffer=matrix_path_ICM_type,
+                           index_col=False,
                            sep=",",
                            skiprows=1,
                            header=None,
