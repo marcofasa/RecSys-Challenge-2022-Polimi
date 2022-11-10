@@ -3,6 +3,8 @@ from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
 from Recommenders.Recommender_utils import check_matrix
 from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
+from Recommenders.KNN.UserKNN_CFCBF_Hybrid_Recommender import UserKNN_CFCBF_Hybrid_Recommender
+
 import numpy as np
 
 class ITEMCFCBF_SLIM_BPR(BaseItemSimilarityMatrixRecommender):
@@ -18,15 +20,15 @@ class ITEMCFCBF_SLIM_BPR(BaseItemSimilarityMatrixRecommender):
 
 
         self.URM_rewatches= URM_rewatches
-        self.SLIM=SLIM_BPR_Cython(URM_train=URM_rewatches)
+        self.USER_CFCBF= UserKNN_CFCBF_Hybrid_Recommender(URM_train=URM_train)
         self.ItemKNNCFCBF = ItemKNN_CFCBF_Hybrid_Recommender(URM_train,ICM_train)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
-            feature_weighting_CF="TF-IDF", alpha=0.7,
+            feature_weighting_CF="TF-IDF", alpha=0.5,
             topK=319, shrink=300, feature_weighting="TF-IDF",  norm_scores=True):
         self.alpha = alpha
         self.norm_scores = norm_scores
-        self.SLIM.fit()
+        self.USER_CFCBF.fit()
         self.ItemKNNCFCBF.fit()
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
@@ -37,7 +39,7 @@ class ITEMCFCBF_SLIM_BPR(BaseItemSimilarityMatrixRecommender):
         :return:
         """
 
-        item_scores1 = self.SLIM._compute_item_score(user_id_array, items_to_compute)
+        item_scores1 = self.USER_CFCBF._compute_item_score(user_id_array, items_to_compute)
         item_scores2 = self.ItemKNNCFCBF._compute_item_score(user_id_array, items_to_compute)
 
         if self.norm_scores:

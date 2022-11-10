@@ -1,11 +1,11 @@
 from Recommenders.BaseSimilarityMatrixRecommender import BaseItemSimilarityMatrixRecommender
 from Recommenders.Hybrid.ITEM_CFCBF_SLIM_BPR import ITEMCFCBF_SLIM_BPR
 from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
-from Recommenders.Hybrid.P3_ITEMKNNCF import P3_ITEMKNNCF
+from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
 from Recommenders.Recommender_utils import check_matrix
 from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
 import numpy as np
-
+from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 
 class FirstLayer(BaseItemSimilarityMatrixRecommender):
     """ ItemKNNScoresHybridRecommender
@@ -20,16 +20,16 @@ class FirstLayer(BaseItemSimilarityMatrixRecommender):
 
 
         self.firstHybrid=ITEMKNNCF_SLIM_BPR(URM_train=URM_train, URM_rewatches=URM_rewatches)
-        self.secondHybrid=ITEMKNNCF_SLIM_BPR(URM_train=URM_train, URM_rewatches=URM_train)
+        self.secondHybrid=ItemUserHybridKNNRecommender(URM_train=URM_train)
 
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
-            feature_weighting_CF="TF-IDF", alpha=0.65,
-            topK=319, shrink=300, feature_weighting="TF-IDF",  norm_scores=False):
+            feature_weighting_CF="TF-IDF", alpha=0.5,
+            topK=319, shrink=300, feature_weighting="TF-IDF",  norm_scores=True):
         self.alpha = alpha
         self.norm_scores = norm_scores
         self.firstHybrid.fit()
-        self.secondHybrid.fit()
+        self.secondHybrid.fit(topK=topK_CF,shrink=shrink_CF)
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
         """

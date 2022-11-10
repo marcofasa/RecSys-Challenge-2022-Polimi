@@ -6,6 +6,7 @@ from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
 from Recommenders.Hybrid.FirstLayer import FirstLayer
 from Recommenders.Hybrid.Rankings import Rankings
 from Recommenders.Hybrid.P3_ITEMKNNCF import P3_ITEMKNNCF
+from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLossScoresHybridRecommender
 import os
 import csv
 import pandas as pd
@@ -19,6 +20,7 @@ class NameRecommender(Enum):
      FirstLayer="FirstLayer"
      Rankings="Rankings"
      P3_ITEMKNNCF="P3_ITEMKNNCF"
+     HybridNorm = "HybridNorm"
 class Writer(object):
 
     def __init__(self,NameRecommender,URM,topK=None,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None,
@@ -55,6 +57,9 @@ class Writer(object):
         if(self.NameRecommender.name=="P3_ITEMKNNCF"):
             self.Recommender= P3_ITEMKNNCF(URM_train=URM)
             self.Recommender.fit()
+        if (self.NameRecommender.name == "HybridNorm"):
+            self.Recommender = DifferentLossScoresHybridRecommender(URM_train=URM, URM_rewatches=URM_rewatches)
+            self.Recommender.fit(norm=np.inf)
 
 
     def makeSubmission(self):

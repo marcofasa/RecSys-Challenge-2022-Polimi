@@ -20,10 +20,12 @@ class DifferentLossScoresHybridRecommender(BaseRecommender):
         self.itemKNNCF = ItemKNNCFRecommender(URM_train)
         self.SLIM = SLIM_BPR_Cython(URM_rewatches)
 
-    def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
-            feature_weighting_CF="TF-IDF", alpha=0.7,
-            topK=319 , learning_rate=0.001  , n_epochs=300 ,lambda1=0.01578,lambda2=0.32905, norm_scores=True):
+
+    def fit(self, norm,topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
+            feature_weighting_CF="TF-IDF", alpha=0.8,
+            topK=319 , learning_rate=0.001  , n_epochs=300 ,lambda1=0.01578,lambda2=0.32905, norm_scores=True,):
         self.alpha = alpha
+        self.norm=norm
         self.norm_scores = norm_scores
         self.itemKNNCF.fit(topK=topK_CF, shrink=shrink_CF, similarity=similarity_CF,
                            feature_weighting=feature_weighting_CF)
@@ -47,4 +49,5 @@ class DifferentLossScoresHybridRecommender(BaseRecommender):
 
         item_weights = item_weights_1 / norm_item_weights_1 * self.alpha + item_weights_2 / norm_item_weights_2 * (1-self.alpha)
 
+        print(item_weights)
         return item_weights

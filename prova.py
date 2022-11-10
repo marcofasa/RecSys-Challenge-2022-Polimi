@@ -22,12 +22,12 @@ ICM_path=os.path.join(dirname,  "data/data_ICM_type.csv")
 ICM_path_length=os.path.join(dirname,  "data/data_ICM_length.csv")
 
 
-rewatches_path=os.path.join(dirname, "data/rewatches.csv")
+rewatches_path=os.path.join(dirname, "data/rewatches_std_normalized.csv")
 
 URM_rewatches=pd.read_csv(rewatches_path, sep=",",
                       skiprows=1,
                       header=None,
-                      dtype={0: int, 1: int, 2: int},
+                      dtype={0: int, 1: int, 2: float},
                       engine='python')
 
 columns=["UserID","ItemID","data"]
@@ -39,13 +39,29 @@ URM_rewatches = sp.coo_matrix((URM_rewatches[columns[2]].values,
                       ))
 URM_rewatches.tocsr()
 
+'''
+negative_path = os.path.join(dirname, "data/extended.csv")
 
+URM_rewatches = pd.read_csv(rewatches_path, sep=",",
+                            skiprows=1,
+                            header=None,
+                            dtype={0: int, 1: int, 2: int},
+                            engine='python')
+
+columns = ["UserID", "ItemID", "data"]
+URM_rewatches.columns = columns
+print(URM_rewatches)
+URM_rewatches = sp.coo_matrix((URM_rewatches[columns[2]].values,
+                               (URM_rewatches[columns[0]].values, URM_rewatches[columns[1]].values)
+
+                               ))
+URM_rewatches.tocsr()
 
 dictionary={
     0: 1,
     1: 5
 }
-
+'''
 #URM=Reader.read_train_csr(matrix_path=matrix_path, switch=False, dictionary=dictionary,column="Data", display=True)
 
 
@@ -67,8 +83,7 @@ from Recommenders.Hybrid.Rankings import Rankings
 
 from Recommenders.Hybrid.P3_ITEMKNNCF import P3_ITEMKNNCF
 from  Recommenders.Hybrid.FirstLayer import FirstLayer
-#a=Writer(NameRecommender.Hybrid,topK=213 , learning_rate=1e-05  , n_epochs=100 ,lambda1= 0.39203945948039676,lambda2=0.24474019645338627,URM_rewatches=URM_rewatches,
-    #    URM=URM_train)
+#a=Writer(NameRecommender.HybridNorm,URM_rewatches=URM_rewatches,URM=URM_train)
 #a.makeSubmission()
 
 
@@ -96,17 +111,28 @@ recommender_ItemKNNCBF = ItemKNNCBFRecommender(URM_train, stacked_ICM)
 recommender_ItemKNNCBF.fit()
 '''
 
+import numpy as np
+from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
+from Recommenders.Hybrid.FirstLayer import FirstLayer
+from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
+from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLossScoresHybridRecommender
+URM_train, URM_test= split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
+#URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
 
-from Recommenders.MatrixFactorization.NMFRecommender import NMFRecommender
-#URM_train, URM_test= split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
-#URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.60)
+RECOMMENDER=ItemKNNCFRecommender(URM_train=URM_train)
+    #ITEMKNNCF_SLIM_BPR(URM_train=URM_train, URM_rewatches=URM_rewatches)
 
-evaluator = EvaluatorHoldout(URM_test_list=URM_train, cutoff_list=[10], isRanking=True)
+evaluator = EvaluatorHoldout(URM_test_list=URM_test, cutoff_list=[10], isRanking=False)
+for norm in [ np.inf]:
+    RECOMMENDER.fit()
+    result_df, _ = evaluator.evaluateRecommender(RECOMMENDER)
+    print("Norm: {}, Result: {}".format(norm, result_df.loc[10]["MAP"]))
 
-RECOMMENDER=NMFRecommender(URM_train=URM_rewatches)
-RECOMMENDER.fit()
-result_df, _ = evaluator.evaluateRecommender(RECOMMENDER)
-print("This is the MAP for only URM and ICM stacked:" + str(result_df.loc[10]["MAP"]))
+
+
+
+#result_df, _ = evaluator.evaluateRecommender(RECOMMENDER)
+#print("This is the MAP for only URM and ICM stacked: " + str(result_df.loc[10]["MAP"]))
 
 
 #Hybrid= FirstLayer(URM_train=URM_train,URM_rewatches=URM_rewatches)

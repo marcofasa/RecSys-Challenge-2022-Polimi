@@ -21,7 +21,7 @@ class ITEMKNNCF_SLIM_BPR(BaseItemSimilarityMatrixRecommender):
         self.SLIM = SLIM_BPR_Cython(URM_rewatches)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
-            feature_weighting_CF="TF-IDF", alpha=0.6,
+            feature_weighting_CF="TF-IDF", alpha=0.7,
             topK=319 , learning_rate=0.001  , n_epochs=300 ,lambda1=0.01578,lambda2=0.32905, norm_scores=True):
         self.alpha = alpha
         self.norm_scores = norm_scores
