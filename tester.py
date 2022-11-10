@@ -31,8 +31,8 @@ matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 #URM_train= Reader.read_train_csr(matrix_path)
 #ICM_genres=Reader.read_ICM_type(matrix_path=ICM_path)
 
-URM_train,ICM_genres=Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
-#URM_train=Reader.read_train_csr(matrix_path=matrix_path)
+#URM_train,ICM_genres=Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
+URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
 
 
@@ -70,12 +70,12 @@ for label, recommender_class in collaborative_recommender_class.items():
     recommender_object = recommender_class(URM_train)
     recommender_object.fit()
     recommender_object_dict[label] = recommender_object
-
+''''
 for label, recommender_class in content_recommender_class.items():
     recommender_object = recommender_class(URM_train, ICM_genres)
     recommender_object.fit()
     recommender_object_dict[label] = recommender_object
-
+'''
 
 cutoff = 10
 for group_id in range(0,20):
