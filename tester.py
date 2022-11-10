@@ -50,9 +50,8 @@ collaborative_recommender_class = {"TopPop": TopPop,
                                    "PureSVD": PureSVDRecommender,
                                    "NMF": NMFRecommender,
                                    "FunkSVD": MatrixFactorization_FunkSVD_Cython,
-                                   "SLIMBPR": SLIM_BPR_Cython,
-                                   "SLIM_Elastic_Net":SLIMElasticNetRecommender,
-                                   "MatrixFactorization":MatrixFactorization_AsySVD_Cython}
+                                   "SLIMBPR": SLIM_BPR_Cython
+                                   }
 sorted_users = np.argsort(profile_length)
 sorted_users
 
