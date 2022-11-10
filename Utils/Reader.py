@@ -22,6 +22,30 @@ def df_col_normalize(df, colToChange, valsToPlace=None):
         return df[colToChange].replace(valsToPlace)
 
 
+def oneHotEncoder(colstoOneHot, dfPath='../data/data_ICM_type.csv', colsToDelete=None,
+                  colstoDefine=None, name=""):
+    if colstoDefine is None:
+        colstoDefine = ["ItemID", "Type", "Data"]
+    df = pd.read_csv(filepath_or_buffer=dfPath,
+                     sep=",",
+                     skiprows=1,
+                     header=None,
+                     dtype={0: int, 1: int, 2: int},
+                     engine='python')
+    df.columns = colstoDefine
+
+    if colsToDelete != None:
+        for c in colsToDelete:
+            df = delete_column(df, c)
+
+    for c in colstoOneHot:
+        df1 = pd.get_dummies(df[c], prefix=c)
+        df = pd.concat([df, df1], axis=1)
+        df = delete_column(df, c)
+
+    save(df, name + "_1Hot")
+
+
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None):
     n_items = 0
@@ -125,6 +149,10 @@ def df_preprocess(df, saving=True, mode=0):
 
     if saving:
         save(df, "out_" + str(mode))
+
+
+def delete_column(df, colName):
+    return df.drop([colName], axis=1)
 
 
 def df_stats(dataframe):
