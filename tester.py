@@ -28,8 +28,8 @@ ICM_path=  os.path.join(dirname, "data/data_ICM_type.csv")
 matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 
 
-URM_train= Reader.read_train_csr(matrix_path)
-ICM_genres=Reader.read_ICM_type(matrix_path=ICM_path)
+#URM_train= Reader.read_train_csr(matrix_path)
+#ICM_genres=Reader.read_ICM_type(matrix_path=ICM_path)
 
 URM_train,ICM_genres=Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
 #URM_train=Reader.read_train_csr(matrix_path=matrix_path)
