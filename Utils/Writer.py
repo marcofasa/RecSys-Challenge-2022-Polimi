@@ -54,7 +54,7 @@ class Writer(object):
             self.Recommender = Rankings(URM_train=self.URM)
             self.Recommender.fit()
         if (self.NameRecommender.name == "FirstLayer"):
-            self.Recommender = FirstLayer(URM_train=self.URM,ICM_train=ICM, URM_rewatches=URM_rewatches)
+            self.Recommender = FirstLayer(URM_train=self.URM, URM_rewatches=URM_rewatches)
             self.Recommender.fit()
         if(self.NameRecommender.name=="P3_ITEMKNNCF"):
             self.Recommender= P3_ITEMKNNCF(URM_train=URM)
@@ -63,7 +63,7 @@ class Writer(object):
             self.Recommender = DifferentLossScoresHybridRecommender(URM_train=URM, URM_rewatches=URM_rewatches)
             self.Recommender.fit(norm=np.inf)
         if (self.NameRecommender.name == "USER_ITEM"):
-            self.Recommender = ItemUserHybridKNNRecommender(URM_train=URM)
+            self.Recommender = ItemUserHybridKNNRecommender(URM_train=URM, URM_rewatches=URM_rewatches)
             self.Recommender.fit()
 
 

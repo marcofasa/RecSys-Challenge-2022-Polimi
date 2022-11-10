@@ -93,7 +93,7 @@ def training_phase():
     for epochs in tqdm(num_epochs):
         for alpha_element in alpha:
             for topK in x_tick_rnd_topK:
-                for learning_rate in tqdm(learning_rate_array ,desc="second cicle"):
+                for learning_rate in tqdm(x_tick_rnd_topK_CF , desc="second cicle"):
                     for i in tqdm(range(size_parameter),desc="first circle"):
 
                     # x_tick.append("topk {}, shrink {}".format(topK, shrink))
@@ -169,7 +169,7 @@ def start_parameter_tuning(x):
     global x_tick_rnd_topK
     global x_tick_lamda1
     global x_tick_lamda2
-    global  learning_rate_array
+    global  x_tick_rnd_topK_CF
 
     x_tick_rnd_topK = loguniform.rvs(200, 500, size=size_parameter).astype(int)
     x_tick_rnd_topK.sort()
@@ -271,7 +271,7 @@ num_epochs=[100,200,300]
 alpha=[0.6,0.7]
 x_tick_lamda1 = []
 x_tick_lamda2 = []
-learning_rate_array = []
+x_tick_rnd_topK_CF = []
 x_tick_rnd_topK=[]
 
 evaluator_test = EvaluatorHoldout(URM_validation, cutoff_list=[10])

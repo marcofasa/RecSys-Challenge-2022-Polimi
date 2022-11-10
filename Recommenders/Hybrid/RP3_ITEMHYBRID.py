@@ -1,5 +1,5 @@
 from Recommenders.BaseSimilarityMatrixRecommender import BaseItemSimilarityMatrixRecommender
-from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
+from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
 from Recommenders.Recommender_utils import check_matrix
 import numpy as np
@@ -12,12 +12,12 @@ class RP3_ITEMHYBRID(BaseItemSimilarityMatrixRecommender):
 
     RECOMMENDER_NAME = "SLIM_ITEMKNNCF"
 
-    def __init__(self, URM_train, ICM_train):
+    def __init__(self, URM_train):
         super(RP3_ITEMHYBRID, self).__init__(URM_train)
 
         self.URM_train = check_matrix(URM_train.copy(), 'csr')
         self.URM_rewatches= URM_train
-        self.itemKNNCF = ItemKNN_CFCBF_Hybrid_Recommender(URM_train,ICM_train)
+        self.itemKNNCF = ItemKNNCFRecommender(URM_train)
         self.RP3beta = RP3betaRecommender(URM_train)
 
     def fit(self, topK_CF=1000, shrink_CF=1000, similarity_CF='cosine', normalize_CF=True,
@@ -26,7 +26,7 @@ class RP3_ITEMHYBRID(BaseItemSimilarityMatrixRecommender):
         self.alpha = alpha
         self.norm_scores = norm_scores
         self.itemKNNCF.fit(topK=topK_CF, shrink=shrink_CF, similarity=similarity_CF,
-                            feature_weighting=feature_weighting_CF,ICM_weight=0.01)
+                            feature_weighting=feature_weighting_CF)
         self.RP3beta.fit(topK=582,alpha=0.6114597042322002, beta=0.19455372936603404)
 
 

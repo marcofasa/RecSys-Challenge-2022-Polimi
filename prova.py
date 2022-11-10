@@ -21,6 +21,8 @@ matrix_path = os.path.join(dirname,  "data/interactions_and_impressions.csv")
 ICM_path=os.path.join(dirname,  "data/data_ICM_type.csv")
 ICM_path_length=os.path.join(dirname,  "data/data_ICM_length.csv")
 
+#normalize map: 1444
+#reqatche only normazlie: 1.43
 
 rewatches_path=os.path.join(dirname, "data/rewatches_std_normalized.csv")
 
@@ -92,7 +94,7 @@ from Recommenders.Hybrid.Rankings import Rankings
 
 from Recommenders.Hybrid.P3_ITEMKNNCF import P3_ITEMKNNCF
 from  Recommenders.Hybrid.FirstLayer import FirstLayer
-a=Writer(NameRecommender.USER_ITEM,URM=URM_train)
+a=Writer(NameRecommender.FirstLayer,URM=URM_train,URM_rewatches=URM_rewatches)
 a.makeSubmission()
 
 
@@ -122,17 +124,17 @@ recommender_ItemKNNCBF.fit()
 
 import numpy as np
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
-from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
+from Recommenders.Hybrid.RP3_ITEMHYBRID import RP3_ITEMHYBRID
 from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
 from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLossScoresHybridRecommender
 URM_train, URM_test= split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.90)
 #URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
 
-#RECOMMENDER=ItemUserHybridKNNRecommender(URM_train=URM_train)
-    #ITEMKNNCF_SLIM_BPR(URM_train=URM_train, URM_rewatches=URM_rewatches)
 RECOMMENDER=FirstLayer(URM_train=URM_train,URM_rewatches=URM_rewatches)
+    #ITEMKNNCF_SLIM_BPR(URM_train=URM_train, URM_rewatches=URM_rewatches)
+#RECOMMENDER=ItemUserHybridKNNRecommender(URM_train=URM_train, URM_rewatches=URM_rewatches)
 evaluator = EvaluatorHoldout(URM_test_list=URM_test, cutoff_list=[10], isRanking=False)
-for norm in [ np.inf]:
+for norm in [np.inf]:
     RECOMMENDER.fit()
     result_df, _ = evaluator.evaluateRecommender(RECOMMENDER)
     print("Norm: {}, Result: {}".format(norm, result_df.loc[10]["MAP"]))
