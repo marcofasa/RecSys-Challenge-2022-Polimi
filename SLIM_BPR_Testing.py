@@ -278,7 +278,7 @@ evaluator_test = EvaluatorHoldout(URM_validation, cutoff_list=[10])
 
 from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
 # knnn contenet filter recomennded none feature weighting
-SLIM_BPR = ITEMKNNCF_SLIM_BPR(URM_train,URM_rewatches)
+SLIM_BPR = (URM_train,URM_rewatches)
 collaborative_None_MAP = []
 
 start_parameter_tuning(2)

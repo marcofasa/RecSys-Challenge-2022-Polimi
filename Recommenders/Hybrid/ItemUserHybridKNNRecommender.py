@@ -24,7 +24,7 @@ class ItemUserHybridKNNRecommender(BaseItemSimilarityMatrixRecommender):
         self.UserKNN = UserKNNCFRecommender(URM_train)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
-            feature_weighting_CF="TF-IDF", alpha=0.5,
+            feature_weighting_CF="TF-IDF", alpha=0.6,
             topK=402, shrink=644, feature_weighting="TF-IDF",  norm_scores=True):
         self.alpha = alpha
         self.norm_scores = norm_scores
@@ -33,22 +33,24 @@ class ItemUserHybridKNNRecommender(BaseItemSimilarityMatrixRecommender):
         self.UserKNN.fit(topK=topK,shrink=shrink,feature_weighting=feature_weighting)
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
-        item_weights_1 = self.itemKNNCF._compute_item_score(user_id_array)
-        item_weights_2 = self.SLIM._compute_item_score(user_id_array)
+        item_scores1 = self.itemKNNCF._compute_item_score(user_id_array, items_to_compute)
+        item_scores2 = self.UserKNN._compute_item_score(user_id_array, items_to_compute)
 
-        norm_item_weights_1 = LA.norm(item_weights_1, self.norm)
-        norm_item_weights_2 = LA.norm(item_weights_2, self.norm)
+        if self.norm_scores:
+            mean1 = np.mean(item_scores1)
+            mean2 = np.mean(item_scores2)
+            std1 = np.std(item_scores1)
+            std2 = np.std(item_scores2)
+            if std1 != 0 and std2 != 0:
+                item_scores1 = (item_scores1 - mean1) / std1
+                item_scores2 = (item_scores2 - mean2) / std2
+            '''max1 = item_scores1.max()
+            max2 = item_scores2.max()
+            item_scores1 = item_scores1 / max1
+            item_scores2 = item_scores2 / max2'''
+        print(item_scores1)
+        print(item_scores2)
 
-        if norm_item_weights_1 == 0:
-            raise ValueError(
-                "Norm {} of item weights for recommender 1 is zero. Avoiding division by zero".format(self.norm))
+        item_scores = item_scores1 * self.alpha + item_scores2 * (1 - self.alpha)
 
-        if norm_item_weights_2 == 0:
-            raise ValueError(
-                "Norm {} of item weights for recommender 2 is zero. Avoiding division by zero".format(self.norm))
-
-        item_weights = item_weights_1 / norm_item_weights_1 * self.alpha + item_weights_2 / norm_item_weights_2 * (
-                    1 - self.alpha)
-
-        print(item_weights)
-        return item_weights
+        return item_scores
