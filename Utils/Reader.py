@@ -13,12 +13,13 @@ from Utils.Evaluator import EvaluatorHoldout
 
 columns = ["UserID", "ItemID", "Interaction", "Data"]
 
+
 def df_col_normalize(df, colToChange, valsToPlace=None):
-    if valsToPlace==None:
-         #return (df[colToChange]-df[colToChange].mean())/df[colToChange].std() #std normalization
-         return (df[colToChange]-df[colToChange].min())/(df[colToChange].max()-df[colToChange].min())
+    if valsToPlace == None:
+        # return (df[colToChange]-df[colToChange].mean())/df[colToChange].std() #std normalization
+        return (df[colToChange] - df[colToChange].min()) / (df[colToChange].max() - df[colToChange].min())
     else:
-         return  df[colToChange].replace(valsToPlace)
+        return df[colToChange].replace(valsToPlace)
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
@@ -50,10 +51,10 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
     matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
     if switch:
-        df_col_normalize(matrix_df, colToChange=column,valsToPlace= dictionary)
+        df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
     if preprocess > 0:
-        print("Preprocessing with mode: "+str(preprocess))
+        print("Preprocessing with mode: " + str(preprocess))
         df_preprocess(matrix_df, saving=False, mode=preprocess)
 
     print(len(matrix_df))
@@ -85,12 +86,9 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     #  {oldval1: newval1 , oldval2: newval1,...}
 
 
-
-
-
 def df_preprocess(df, saving=True, mode=0):
     list_to_convert = []
-    for index, row in tqdm(df.iterrows(), total=len(df),desc="Passing through all dataset to gather infos..."):
+    for index, row in tqdm(df.iterrows(), total=len(df), desc="Passing through all dataset to gather infos..."):
         # print(index)
         # print(len(df))
 
@@ -102,26 +100,26 @@ def df_preprocess(df, saving=True, mode=0):
         userid = row[columns[0]]
         item = row[columns[1]]
         # counting other TV series displayed
-        if mode == 1: #Displayed
+        if mode == 1:  # Displayed
             df.loc[index, 'Displayed'] = len(displayList)  # insert to the new column
-        elif mode == 2: #Extended
+        elif mode == 2:  # Extended
             for item in displayList:
                 list_to_convert.append([userid, item, None, -1])
-        elif mode == 3: #Rewatch
+        elif mode == 3:  # Rewatch
             if row[columns[3]] == 1:
                 list_to_convert.append([userid, item])
 
     if mode < 3:
         df1 = pd.DataFrame(list_to_convert, columns=columns)
         df = df.append(df1)
-        df.columns=columns
-        df=df.drop([2], axis=1)
+        df.columns = columns
+        df = df.drop([2], axis=1)
         # df=df.sort_values(by=[0,1])
     elif mode == 3:
         cols = ["UserID", "ItemID", "Rewatch"]
         c = Counter(map(tuple, list_to_convert)).most_common()
         list_to_convert_final = []
-        for i in tqdm(c,desc="Counting the rewatches"):
+        for i in tqdm(c, desc="Counting the rewatches"):
             list_to_convert_final.append([i[0][0], i[0][1], i[1]])
         df = pd.DataFrame(list_to_convert_final, columns=cols)
 
@@ -205,7 +203,7 @@ def read_ICM_length(matrix_format="csr", clean=True, matrix_path="../data/data_I
         return sps.csc_matrix(pd.DataFrame(data=df, columns=["EPLength"]).to_numpy())
 
 
-def read_ICM_type(matrix_path,matrix_format="csr", clean=True ):
+def read_ICM_type(matrix_path, matrix_format="csr", clean=True):
     df = pd.read_csv(filepath_or_buffer=matrix_path,
                      sep=",",
                      skiprows=1,
@@ -239,77 +237,15 @@ def merge(ICM_a, ICM_b):
     return sps.hstack([ICM_a, ICM_b])
 
 
-
-def save(data, name, relativePath="../output/",fullPath=None):
+def save(data, name, relativePath="../output/", fullPath=None):
     if fullPath is None:
         data.to_csv(relativePath + name + '.csv', index=False)
     else:
         data.to_csv(fullPath, index=False)
 
-'''
 
-def get_URM_URM_rewatches(matrix_path_URM, matrix_path_rewatches):
-    columns = ["UserID", "ItemID", "Interaction", "Data"]
-    n_items = 0
-    URM = pd.read_csv(filepath_or_buffer=matrix_path_URM,
-                      sep=",",
-                      skiprows=1,
-                      header=None,
-                      dtype={0: int, 1: int, 2: str, 3: int},
-                      engine='python')
-    URM.columns = columns
-
-    URM_rewatches = pd.read_csv(filepath_or_buffer=matrix_path_rewatches,
-                           sep=",",
-                           skiprows=1,
-                           header=None,
-                           dtype={0: int, 1: int, 2: int},
-                           engine='python')
-    URM_rewatches.columns = ['UserID', 'ItemID', 'data']
-
-    mapped_id, original_id = pd.factorize(URM["UserID"].unique())
-
-    user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
-
-    all_item_indices = pd.concat([URM["ItemID"], URM_rewatches["ItemID"]], ignore_index=True)
-    mapped_id, original_id = pd.factorize(all_item_indices.unique())
-
-    print("Unique ItemID in the URM and ICM_length are {}".format(len(original_id)))
-
-
-    print("Unique FeatureID in the URM are {}".format(len(feature_original_ID_to_index)))
-
-    URM["UserID"] = URM["UserID"].map(user_original_ID_to_index)
-    URM["ItemID"] = URM["ItemID"].map(item_original_ID_to_index)
-    URM[columns[3]] = URM[columns[3]].replace({0: 1, 1: 0})
-    # matrix_df.loc[~(matrix_df == 0).all(axis=2)]
-
-    ICM_type["ItemID"] = ICM_type["ItemID"].map(item_original_ID_to_index)
-    ICM_type["FeatureID"] = ICM_type["FeatureID"].map(feature_original_ID_to_index)
-
-    n_users = len(user_original_ID_to_index)
-    n_items = len(item_original_ID_to_index)
-    n_features = len(feature_original_ID_to_index)
-
-
-    URM_all = sps.csr_matrix((URM[columns[3]].values,
-                              (URM[columns[0]].values, URM[columns[1]].values)),
-                             shape=(n_users, n_items))
-
-    ICM_all_type = sps.csr_matrix((np.ones(len(ICM_type["ItemID"].values)),
-                                   (ICM_type["ItemID"].values, ICM_type["FeatureID"].values)),
-                                  shape=(n_items, n_features))
-
-    ICM_all_length = sps.csr_matrix((np.ones(len(ICM_length["Data"].values)),
-                                     (ICM_length["ItemID"].values, ICM_length["Episodes"].values)),
-                                    shape=(n_items, n_features))
-
-    ICM_all_type.data = np.ones_like(ICM_all_type.data)
-
-    return URM_all, ICM_all_type
-
-'''
-def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv', matrix_path_ICM_length='data/data_ICM_length.csv'):
+def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv',
+                     matrix_path_ICM_length='data/data_ICM_length.csv'):
     columns = ["UserID", "ItemID", "Interaction", "Data"]
     n_items = 0
     URM = pd.read_csv(filepath_or_buffer=matrix_path_URM,
@@ -363,7 +299,6 @@ def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv
     n_users = len(user_original_ID_to_index)
     n_items = len(item_original_ID_to_index)
     n_features = len(feature_original_ID_to_index)
-
 
     URM_all = sps.csr_matrix((URM[columns[3]].values,
                               (URM[columns[0]].values, URM[columns[1]].values)),

@@ -148,6 +148,8 @@ lambda_weights = 0.66
 * Once the optimization concludes, check if the hybrid is better than before or not. If it is better keep the new hybrid, if not remove the second-best model.
 * Continue trying to add the third-best, fourth-best and so on...
 * If you are lucky every now and then a new model can be added and the quality improves. (again, result not guaranteed)
+* ItemKNN (URM + ICM type) + SLIM (ICM rewatches) <-- LAB 12 Hybrid recommenders
+
 
 ## Segmentation
 
