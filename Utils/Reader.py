@@ -22,6 +22,27 @@ def df_col_normalize(df, colToChange, valsToPlace=None):
         return df[colToChange].replace(valsToPlace)
 
 
+def df_splitter(columnToDivide, divisionList,dtype={0: int, 1: int, 2: int}, dfPath='../data/rewatches.csv', colstoDefine=None, name=""):
+    if colstoDefine is None:
+        colstoDefine = ["UserID", "ItemID", "Rewatch"]
+    df = pd.read_csv(filepath_or_buffer=dfPath,
+                     sep=",",
+                     skiprows=1,
+                     header=None,
+                     dtype=dtype,
+                     engine='python')
+    df.columns = colstoDefine
+
+    for idx, x in enumerate(divisionList):
+        if idx + 1 < len(divisionList):
+            y = divisionList[idx + 1]
+            df_temp = df[(df[columnToDivide] > x) & (df[columnToDivide] < y)]
+            save(df_temp, name + str(x) + '_' + str(y))
+        else:
+            df_temp = df[df[columnToDivide] > x]
+            save(df_temp, name + str(x))
+
+
 def oneHotEncoder(colstoOneHot, dfPath='../data/data_ICM_type.csv', colsToDelete=None,
                   colstoDefine=None, name=""):
     if colstoDefine is None:
@@ -47,7 +68,7 @@ def oneHotEncoder(colstoOneHot, dfPath='../data/data_ICM_type.csv', colsToDelete
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None):
+                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None,saving=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -79,7 +100,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
     if preprocess > 0:
         print("Preprocessing with mode: " + str(preprocess))
-        df_preprocess(matrix_df, saving=False, mode=preprocess)
+        df_preprocess(matrix_df, saving=saving, mode=preprocess)
 
     print(len(matrix_df))
 
@@ -123,15 +144,22 @@ def df_preprocess(df, saving=True, mode=0):
 
         userid = row[columns[0]]
         item = row[columns[1]]
-        # counting other TV series displayed
+
+        # 1-> Displayed (counts times a given Item has been displayed(in impressions list) to the user
+        # 2-> Extended (adds an interaction (-1) if a User has an item in impression list
+        # 3-> Count rewatches of each User-Item pair
+        # 4-> Count all rewatches of each user
         if mode == 1:  # Displayed
             df.loc[index, 'Displayed'] = len(displayList)  # insert to the new column
         elif mode == 2:  # Extended
             for item in displayList:
                 list_to_convert.append([userid, item, None, -1])
-        elif mode == 3:  # Rewatch
+        elif mode == 3:  # Rewatch for each user-item
             if row[columns[3]] == 1:
                 list_to_convert.append([userid, item])
+        elif mode == 4:  # Rewatch (total) for each user-item
+            if row[columns[3]] == 1:
+                list_to_convert.append(userid)
 
     if mode < 3:
         df1 = pd.DataFrame(list_to_convert, columns=columns)
@@ -146,6 +174,10 @@ def df_preprocess(df, saving=True, mode=0):
         for i in tqdm(c, desc="Counting the rewatches"):
             list_to_convert_final.append([i[0][0], i[0][1], i[1]])
         df = pd.DataFrame(list_to_convert_final, columns=cols)
+    elif mode == 4:
+        cols = ["UserID", "Rewatch"]
+        c = Counter(list_to_convert).most_common()
+        df = pd.DataFrame(c, columns=cols)
 
     if saving:
         save(df, "out_" + str(mode))
