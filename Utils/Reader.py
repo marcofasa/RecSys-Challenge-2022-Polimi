@@ -22,6 +22,27 @@ def df_col_normalize(df, colToChange, valsToPlace=None):
         return df[colToChange].replace(valsToPlace)
 
 
+def df_splitter(columnToDivide, divisionList, dfPath='../data/rewatches.csv', colstoDefine=None, name=""):
+    if colstoDefine is None:
+        colstoDefine = ["UserID", "ItemID", "Rewatch"]
+    df = pd.read_csv(filepath_or_buffer='../data/rewatches.csv',
+                     sep=",",
+                     skiprows=1,
+                     header=None,
+                     dtype={0: int, 1: int, 2: int},
+                     engine='python')
+    df.columns = colstoDefine
+
+    for idx, x in enumerate(divisionList):
+        if idx + 1 < len(divisionList):
+            y = divisionList[idx + 1]
+            df_temp = df[(df[columnToDivide] > x) & (df[columnToDivide] < y)]
+            save(df_temp, name + str(x) + '_' + str(y))
+        else:
+            df_temp = df[df[columnToDivide] > x]
+            save(df_temp, name + str(x))
+
+
 def oneHotEncoder(colstoOneHot, dfPath='../data/data_ICM_type.csv', colsToDelete=None,
                   colstoDefine=None, name=""):
     if colstoDefine is None:
