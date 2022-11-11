@@ -103,7 +103,7 @@ def training_phase():
                         result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
                         print("This is the MAP " + str(result_df.loc[10]["MAP"]) + " with shrinkCF rate " + str(shrink_CF_ele) +
                               " and topK " + str(topK_CF) + " and shrinkCF " + str(shrink_CF) + " and topk User  "+ str(topK))
-                        order_MAP(MAP=result_df.loc[10]["MAP"], topK=topK, learning_rate=topK_CF, lambda1=shrink_ele, lambda2=shrink_CF,
+                        order_MAP(MAP=result_df.loc[10]["MAP"], topK=topK, learning_rate=topK_CF, lambda1=shrink_ele, lambda2=shrink_CF_ele,
                                   Best_learning_rate_phase=Best_topK_CF_Rate_training, Best_MAP_phase=Best_MAP_training, Best_TopK_Phase=Best_topK_training,
                                   Best_lambda1_phase=Best_shrink_training, Best_lambda2_phase=Best_shrink_CF_training, Best_alpha_phase=Best_alpha_training,
                                    alpha=alpha_element)
@@ -148,21 +148,21 @@ def start_parameter_tuning(x):
     global shrink
     global  x_tick_rnd_topK_CF
 
-    x_tick_rnd_topK = loguniform.rvs(200, 500, size=size_parameter).astype(int)
+    x_tick_rnd_topK = loguniform.rvs(100, 900, size=size_parameter).astype(int)
     x_tick_rnd_topK.sort()
     x_tick_rnd_topK = list(x_tick_rnd_topK)
 
-    shrink_CF=loguniform.rvs(200, 500, size=size_parameter).astype(int)
+    shrink_CF=loguniform.rvs(100, 900, size=size_parameter).astype(int)
     shrink_CF.sort()
-    shrink_CF = list(x_tick_rnd_topK)
+    shrink_CF = list(shrink_CF)
 
-    shrink = loguniform.rvs(200, 500, size=size_parameter).astype(int)
+    shrink = loguniform.rvs(100, 9000, size=size_parameter).astype(int)
     shrink.sort()
-    shrink = list(x_tick_rnd_topK)
+    shrink = list(shrink)
 
-    x_tick_rnd_topK_CF=loguniform.rvs(200, 500, size=size_parameter).astype(int)
+    x_tick_rnd_topK_CF=loguniform.rvs(100, 1000, size=size_parameter).astype(int)
     x_tick_rnd_topK_CF.sort()
-    x_tick_rnd_topK_CF = list(x_tick_rnd_topK)
+    x_tick_rnd_topK_CF = list(x_tick_rnd_topK_CF)
 
 
 
@@ -244,7 +244,7 @@ Best_topK_testing=[]
 # Parameter that declare how many of the best parameter to save, it will be the number of loops for the validantion and test phase
 max_length_best = 40
 # Variable for the num of parameter for topKin,lambda2 e lambda1 the test phase, the number of loops will be this number at the fourth
-size_parameter = 4
+size_parameter = 9
 # Start time
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #Paramter for the number of epoch

@@ -23,7 +23,8 @@ class ItemUserHybridKNNRecommender(BaseItemSimilarityMatrixRecommender):
         self.itemKNNCF = ItemKNNCFRecommender(URM_train)
         self.UserKNN = UserKNNCFRecommender(URM_train)
 
-    def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
+
+    def fit(self, topK_CF=728, shrink_CF=506, similarity_CF='cosine', normalize_CF=True,
             feature_weighting_CF="TF-IDF", alpha=0.6,
             topK=402, shrink=644, feature_weighting="TF-IDF",  norm_scores=True):
         self.alpha = alpha
