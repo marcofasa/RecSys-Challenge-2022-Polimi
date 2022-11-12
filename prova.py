@@ -18,13 +18,14 @@ import os
 from Utils import Reader
 dirname = os.path.dirname(__file__)
 matrix_path = os.path.join(dirname,  "data/interactions_and_impressions.csv")
+matrix_extended=os.path.join(dirname,  "data/extended.csv")
 ICM_path=os.path.join(dirname,  "data/data_ICM_type.csv")
 ICM_path_length=os.path.join(dirname,  "data/data_ICM_length.csv")
 
 #normalize map: 1444
 #reqatche only normazlie: 1.43
 
-rewatches_path=os.path.join(dirname, "data/rewatches/rewatches20.csv")
+rewatches_path=os.path.join(dirname, "data/rewatches.csv")
 
 URM_rewatches=pd.read_csv(rewatches_path, sep=",",
                       skiprows=1,
@@ -48,7 +49,7 @@ URM_rewatches = sp.coo_matrix((URM_rewatches[columns[2]].values,
                       ))
 URM_rewatches.tocsr()
 
-
+URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 
 '''
 negative_path = os.path.join(dirname, "data/extended.csv")
@@ -82,7 +83,7 @@ import scipy.sparse as sps
 
 
 #URM_train, ICM_train=Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
-URM_train=Reader.read_train_csr(matrix_path=matrix_path)
+#URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 #URM_rewatches, URM_test = split_train_in_two_percentage_global_sample(URM_rewatches,0.7)
 
 
@@ -94,7 +95,7 @@ from Recommenders.Hybrid.Rankings import Rankings
 
 from Recommenders.Hybrid.P3_ITEMKNNCF import P3_ITEMKNNCF
 from  Recommenders.Hybrid.FirstLayer import FirstLayer
-a=Writer(NameRecommender.USER_ITEM,URM=URM_train)
+a=Writer(NameRecommender.FirstLayer,URM=URM_train, URM_rewatches=URM_rewatches)
 a.makeSubmission()
 
 
@@ -128,6 +129,10 @@ from Recommenders.GraphBased.P3alphaRecommender import P3alphaRecommender
 from Recommenders.Hybrid.GraphBasedHybrid import GraphBasedHybrid
 from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
 from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLossScoresHybridRecommender
+#URM_rewatches,ICM_train=Reader.get_URM_ICM_Type_Extended(matrix_path_URM=matrix_extended,matrix_path_ICM_type=ICM_path)
+
+URM_rewatches, URM_test= split_train_in_two_percentage_global_sample(URM_rewatches, train_percentage=0.80)
+
 URM_train, URM_test= split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
 #URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
 
@@ -136,8 +141,8 @@ URM_train, URM_test= split_train_in_two_percentage_global_sample(URM_train, trai
 evaluator = EvaluatorHoldout(URM_test_list=URM_test, cutoff_list=[10], isRanking=False)
 
 
-
-RECOMMENDER=ItemUserHybridKNNRecommender(URM_train=URM_train)
+from Recommenders.Hybrid.RP3_ITEMHYBRID import RP3_SLIM_BPR
+RECOMMENDER=FirstLayer(URM_train=URM_train, URM_rewatches=URM_rewatches)
 RECOMMENDER.fit()
 result_df, _ = evaluator.evaluateRecommender(RECOMMENDER)
 print(" This is the MAP for FIrstLayer: {}".format( result_df.loc[10]["MAP"]))

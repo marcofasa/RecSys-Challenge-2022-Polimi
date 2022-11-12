@@ -5,7 +5,7 @@ from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
 from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
 from Recommenders.Hybrid.FirstLayer import FirstLayer
 from Recommenders.Hybrid.Rankings import Rankings
-from Recommenders.Hybrid.P3_ITEMKNNCF import P3_ITEMKNNCF
+from Recommenders.Hybrid.RP3_ITEMHYBRID import RP3_SLIM_BPR
 from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
 from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLossScoresHybridRecommender
 import os
@@ -26,7 +26,7 @@ class NameRecommender(Enum):
 class Writer(object):
 
     def __init__(self,NameRecommender,URM,topK=None,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None,
-                 URM_rewatches=None,ICM=None):
+                 URM_rewatches=None,ICM=None, shrink_CF=None, topk_CF=None):
         self.NameRecommender=NameRecommender
         self.URM=URM
         self.topK=topK
@@ -54,17 +54,17 @@ class Writer(object):
             self.Recommender = Rankings(URM_train=self.URM)
             self.Recommender.fit()
         if (self.NameRecommender.name == "FirstLayer"):
-            self.Recommender = FirstLayer(URM_train=self.URM)
+            self.Recommender = FirstLayer(URM_train=self.URM, URM_rewatches=URM_rewatches)
             self.Recommender.fit()
         if(self.NameRecommender.name=="P3_ITEMKNNCF"):
-            self.Recommender= P3_ITEMKNNCF(URM_train=URM)
+            self.Recommender= RP3_SLIM_BPR(URM_train=URM,URM_rewatches= URM_rewatches)
             self.Recommender.fit()
         if (self.NameRecommender.name == "HybridNorm"):
             self.Recommender = DifferentLossScoresHybridRecommender(URM_train=URM, URM_rewatches=URM_rewatches)
             self.Recommender.fit(norm=np.inf)
         if (self.NameRecommender.name == "USER_ITEM"):
             self.Recommender = ItemUserHybridKNNRecommender(URM_train=URM)
-            self.Recommender.fit()
+            self.Recommender.fit(topK_CF=topk_CF,shrink_CF=shrink_CF, shrink=shrink,topK=topK)
 
 
     def makeSubmission(self):

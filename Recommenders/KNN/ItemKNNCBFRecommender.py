@@ -27,7 +27,7 @@ class ItemKNNCBFRecommender(BaseItemCBFRecommender, BaseItemSimilarityMatrixReco
 
 
 
-    def fit(self, topK=50, shrink=100, similarity='cosine', normalize=True, feature_weighting = "TF-IDF", ICM_bias = None, **similarity_args):
+    def fit(self, topK=50, shrink=100, similarity='cosine', normalize=True, feature_weighting = "none", ICM_bias = None, **similarity_args):
 
         self.topK = topK
         self.shrink = shrink

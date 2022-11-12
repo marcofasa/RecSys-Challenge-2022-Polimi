@@ -6,10 +6,10 @@ from Recommenders.Recommender_utils import check_matrix
 from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
 import numpy as np
 from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
-from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
-
+from Recommenders.Hybrid.RP3_ITEMHYBRID import RP3_SLIM_BPR
+from numpy import linalg as LA
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
-
+from Recommenders.NonPersonalizedRecommender import TopPop
 class FirstLayer(BaseItemSimilarityMatrixRecommender):
     """ ItemKNNScoresHybridRecommender
     Hybrid of two prediction scores R = R1*alpha + R2*(1-alpha)
@@ -18,12 +18,12 @@ class FirstLayer(BaseItemSimilarityMatrixRecommender):
 
     RECOMMENDER_NAME = "ITEMCFCBF_SLIMBPR"
 
-    def __init__(self, URM_train):
+    def  __init__(self, URM_train, URM_rewatches):
         super(FirstLayer, self).__init__(URM_train)
 
 
         self.firstHybrid=ItemUserHybridKNNRecommender(URM_train=URM_train)
-        self.secondHybrid=GraphBasedHybrid(URM_train=URM_train)
+        self.secondHybrid=RP3_SLIM_BPR(URM_train=URM_rewatches)
 
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
@@ -31,17 +31,11 @@ class FirstLayer(BaseItemSimilarityMatrixRecommender):
             topK=319 , learning_rate=0.001  , n_epochs=300 ,lambda1=0.01578,lambda2=0.32905, norm_scores=False):
         self.alpha = alpha
         self.norm_scores = norm_scores
+        self.norm=np.inf
         self.firstHybrid.fit()
         self.secondHybrid.fit()
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
-        """
-        URM_train and W_sparse must have the same format, CSR
-        :param user_id_array:
-        :param items_to_compute:
-        :return:
-        """
-
         item_scores1 = self.firstHybrid._compute_item_score(user_id_array, items_to_compute)
         item_scores2 = self.secondHybrid._compute_item_score(user_id_array, items_to_compute)
 

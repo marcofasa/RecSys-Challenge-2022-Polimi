@@ -25,7 +25,7 @@ class ItemUserHybridKNNRecommender(BaseItemSimilarityMatrixRecommender):
 
 
     def fit(self, topK_CF=728, shrink_CF=506, similarity_CF='cosine', normalize_CF=True,
-            feature_weighting_CF="TF-IDF", alpha=0.6,
+            feature_weighting_CF="TF-IDF", alpha=0.5,
             topK=402, shrink=644, feature_weighting="TF-IDF",  norm_scores=True):
         self.alpha = alpha
         self.norm_scores = norm_scores

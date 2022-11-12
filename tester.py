@@ -31,8 +31,15 @@ matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 #URM_train= Reader.read_train_csr(matrix_path)
 #ICM_genres=Reader.read_ICM_type(matrix_path=ICM_path)
 
-URM_train,ICM_genres=Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
+#URM_train,ICM_genres=Reader.get_URM_ICM_Type_Extended(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
 #URM_train=Reader.read_train_csr(matrix_path=matrix_path)
+import pandas as pd
+import scipy.sparse as sp
+rewatches_path = os.path.join(dirname, "data/rewatches/rewatches20.csv")
+
+
+URM_train= Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path, matrix_path_ICM_type=ICM_path)
+URM_rewatches, ICM_genres= Reader.get_URM_ICM_Type_Extended(matrix_path_URM=rewatches_path, matrix_path_ICM_type=ICM_path)
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
 
 
@@ -48,7 +55,7 @@ collaborative_recommender_class = {"TopPop": TopPop,
                                    "P3alpha": P3alphaRecommender,
                                    "RP3beta": RP3betaRecommender,
                                    "PureSVD": PureSVDRecommender,
-                                   "NMF": NMFRecommender,
+                                  # "NMF": NMFRecommender,
                                    "FunkSVD": MatrixFactorization_FunkSVD_Cython,
                                    "SLIMBPR": SLIM_BPR_Cython
                                    }

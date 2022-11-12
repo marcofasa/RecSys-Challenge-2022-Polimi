@@ -148,19 +148,19 @@ def start_parameter_tuning(x):
     global shrink
     global  x_tick_rnd_topK_CF
 
-    x_tick_rnd_topK = loguniform.rvs(100, 900, size=size_parameter).astype(int)
+    x_tick_rnd_topK = loguniform.rvs(100, 1100, size=size_parameter).astype(int)
     x_tick_rnd_topK.sort()
     x_tick_rnd_topK = list(x_tick_rnd_topK)
 
-    shrink_CF=loguniform.rvs(100, 900, size=size_parameter).astype(int)
+    shrink_CF=loguniform.rvs(100, 1100, size=size_parameter).astype(int)
     shrink_CF.sort()
     shrink_CF = list(shrink_CF)
 
-    shrink = loguniform.rvs(100, 9000, size=size_parameter).astype(int)
+    shrink = loguniform.rvs(100, 1100, size=size_parameter).astype(int)
     shrink.sort()
     shrink = list(shrink)
 
-    x_tick_rnd_topK_CF=loguniform.rvs(100, 1000, size=size_parameter).astype(int)
+    x_tick_rnd_topK_CF=loguniform.rvs(100, 1100, size=size_parameter).astype(int)
     x_tick_rnd_topK_CF.sort()
     x_tick_rnd_topK_CF = list(x_tick_rnd_topK_CF)
 
@@ -244,7 +244,7 @@ Best_topK_testing=[]
 # Parameter that declare how many of the best parameter to save, it will be the number of loops for the validantion and test phase
 max_length_best = 40
 # Variable for the num of parameter for topKin,lambda2 e lambda1 the test phase, the number of loops will be this number at the fourth
-size_parameter = 9
+size_parameter = 4
 # Start time
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #Paramter for the number of epoch
