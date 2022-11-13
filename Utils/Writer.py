@@ -64,7 +64,7 @@ class Writer(object):
             self.Recommender.fit(norm=np.inf)
         if (self.NameRecommender.name == "USER_ITEM"):
             self.Recommender = ItemUserHybridKNNRecommender(URM_train=URM)
-            self.Recommender.fit(topK_CF=topk_CF,shrink_CF=shrink_CF, shrink=shrink,topK=topK, alpha=alpha)
+            self.Recommender.fit()
 
 
     def makeSubmission(self):
