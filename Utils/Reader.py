@@ -94,9 +94,9 @@ def only_read_train_csr(matrix_path="../data/interactions_and_impressions.csv", 
 
 def stacker(URM=None, ICM=None):
     # READING
-    if URM == None:
-        URM = only_read_train_csr(matrix_path="data/interactions_and_impressions.csv", matrix_format="...")
-    if ICM == None:
+    if URM is None:
+        URM = only_read_train_csr( matrix_format="...")
+    if ICM is None:
         ICM = read_ICM_type(matrix_path="data/data_ICM_type.csv", matrix_format="...")
     n_users, n_items, n_features = factorization(URM, ICM)
     import numpy as np
@@ -351,6 +351,25 @@ def csr_stats(csr, n_items):
     pyplot.xlabel('Sorted User')
     pyplot.show()
 
+def read_ICM_rewatches(matrix_path="../data/rewatches.csv", matrix_format="csr", clean=True):
+    df = pd.read_csv(filepath_or_buffer=matrix_path,
+                     sep=",",
+                     skiprows=1,
+                     header=None,
+                     dtype={0: int, 1: int, 2: int},
+                     engine='python')
+    df.columns = ['ItemID', 'FeatureID', 'data']
+
+    # Since there's only one feature the data column is useless (all 1s)
+    if clean:
+        df = df.drop('data', axis=1)
+    # df.set_index('ItemID', inplace=True)
+    if matrix_format == "csr":
+        return sps.csr_matrix(pd.DataFrame(data=df, columns=["Type"]).to_numpy())
+    elif matrix_format == "csc":
+        return sps.csc_matrix(pd.DataFrame(data=df, columns=["Type"]).to_numpy())
+    else:
+        return df
 
 def read_ICM_length(matrix_format="csr", clean=True, matrix_path="../data/data_ICM_type.csv"):
     df = pd.read_csv(filepath_or_buffer=matrix_path,
