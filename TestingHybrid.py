@@ -16,35 +16,35 @@ from tqdm import tqdm
 # Order the best map, with the same order with the name, topk and shrink
 
 # Order the best map, with the same order with the name, topk and shrink
-def order_MAP(Best_MAP_phase,Best_learning_rate_phase,Best_lambda1_phase,Best_lambda2_phase,Best_TopK_Phase,Best_alpha_phase,MAP,
-              lambda1,lambda2,learning_rate, topK, alpha):
+def order_MAP(Best_MAP_phase,Best_topK_CF_phase,Best_shrink_phase,Best_shrink_CF_phase,Best_TopK_Phase,Best_alpha_phase,MAP,
+              shrink_ele,shrink_CF_ele,topk_CF, topK, alpha):
     # Check if the MAP is less than the one alredy stored and insert it at that index
     for index in range(len(Best_MAP_phase)):
         if (Best_MAP_phase[index] < MAP):
             Best_MAP_phase.insert(index, MAP)
-            Best_learning_rate_phase.insert(index, learning_rate)
+            Best_topK_CF_phase.insert(index, topk_CF)
             Best_TopK_Phase.insert(index, topK)
-            Best_lambda1_phase.insert(index, lambda1)
-            Best_lambda2_phase.insert(index,lambda2)
+            Best_shrink_phase.insert(index, shrink_ele)
+            Best_shrink_CF_phase.insert(index,shrink_CF_ele)
             Best_alpha_phase.insert(index,alpha)
 
             # If there was an adding and the length is >15, remove the last element
             if (len(Best_MAP_phase) > max_length_best):
                 del Best_MAP_phase[-1]
-                del Best_learning_rate_phase[-1]
+                del Best_topK_CF_phase[-1]
                 del Best_TopK_Phase[-1]
-                del Best_lambda1_phase[-1]
-                del Best_lambda2_phase[-1]
+                del Best_shrink_phase[-1]
+                del Best_shrink_CF_phase[-1]
                 del Best_alpha_phase[-1]
             return
 
     # If the array lenght is not 15, append the element
     if (len(Best_MAP_phase) < max_length_best):
         Best_MAP_phase.append(MAP)
-        Best_learning_rate_phase.append(learning_rate)
-        Best_lambda1_phase.append(lambda1)
+        Best_topK_CF_phase.append(topk_CF)
+        Best_shrink_phase.append(shrink_ele)
         Best_TopK_Phase.append(topK)
-        Best_lambda2_phase.append(lambda2)
+        Best_shrink_CF_phase.append(shrink_CF_ele)
         Best_alpha_phase.append(alpha)
 
     return
@@ -57,7 +57,7 @@ def save_data(phase):
         file = open("Testing_Results/ItemUser_Best_Training_"+ str(multiprocessing.current_process) + ".txt", "w+")
         for index in range(len(Best_MAP_training)):
             file.write(str(index) + ".  MAP: " + str(Best_MAP_training[index]) + "     Learning rate: " +
-                       str(Best_topK_CF_Rate_training[index]) + "   topK: " + str(
+                       str(Best_topK_CF_training[index]) + "   topK: " + str(
                 Best_topK_training[index]) + "  topk_CF " + str(Best_shrink_CF_training[index]) + "shrink " + str(Best_shrink_training[index]) +
                        " alpha= " + str(Best_alpha_training[index])  + "\n")
         file.write("\nStarted at:  " + str(start_time) + "\nFinished at (Date-Time):   " + str(
@@ -66,9 +66,9 @@ def save_data(phase):
         return
     elif (phase == "Validation"):
         file = open("Testing_Results/ItemUser_SLIM_Best_Validation_"+ str(multiprocessing.current_process) + ".txt", "w+")
-        for index in range(max_length_best):
+        for index in range(Best_topK_CF_validation):
             file.write(str(index) + ".  MAP: " + str(Best_MAP_training[index]) + "     topkCF  rate: " +
-                       str(Best_topK_CF_Rate_validation[index]) + "   topK: " + str(
+                       str(Best_topK_CF_training[index]) + "   topK: " + str(
                 Best_topK_training[index]) + "  topk_CF " + str(Best_shrink_CF_validation[index]) + "shrink " + str(
                 Best_shrink_training[index]) +
                        " alpha= " + str(Best_alpha_training[index]) + "\n")
@@ -103,9 +103,9 @@ def training_phase():
                         result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
                         print("This is the MAP " + str(result_df.loc[10]["MAP"]) + " with shrinkCF rate " + str(shrink_CF_ele) +
                               " and topK " + str(topK_CF) + " and shrinkCF " + str(shrink_CF) + " and topk User  "+ str(topK))
-                        order_MAP(MAP=result_df.loc[10]["MAP"], topK=topK, learning_rate=topK_CF, lambda1=shrink_ele, lambda2=shrink_CF_ele,
-                                  Best_learning_rate_phase=Best_topK_CF_Rate_training, Best_MAP_phase=Best_MAP_training, Best_TopK_Phase=Best_topK_training,
-                                  Best_lambda1_phase=Best_shrink_training, Best_lambda2_phase=Best_shrink_CF_training, Best_alpha_phase=Best_alpha_training,
+                        order_MAP(MAP=result_df.loc[10]["MAP"], topK=topK, topk_CF=topK_CF, shrink_ele=shrink_ele, shrink_CF_ele=shrink_CF_ele,
+                                  Best_topK_CF_phase=Best_topK_CF_training, Best_MAP_phase=Best_MAP_training, Best_TopK_Phase=Best_topK_training,
+                                  Best_shrink_phase=Best_shrink_training, Best_shrink_CF_phase=Best_shrink_CF_training, Best_alpha_phase=Best_alpha_training,
                                    alpha=alpha_element)
                         save_data(phase="Training")
 
@@ -123,18 +123,18 @@ def validation_phase():
     for i in tqdm(range(max_length_best)):
         # x_tick.append("topk {}, shrink {}".format(topK, shrink))
 
-        SLIM_BPR.fit(topK=Best_topK_training[i], topK_CF=Best_topK_CF_Rate_training[i], alpha=Best_alpha_training[i],
+        SLIM_BPR.fit(topK=Best_topK_training[i], topK_CF=Best_topK_CF_training[i], alpha=Best_alpha_training[i],
                      shrink_CF=Best_shrink_CF_training[i], shrink=Best_shrink_training[i])
 
         result_df, _ = evaluator_test.evaluateRecommender(SLIM_BPR)
         print("This is the MAP " + str(result_df.loc[10]["MAP"]) + " with shrinkCF rate " + str(Best_shrink_CF_training[i]) +
-              " and topK " + str(Best_topK_CF_Rate_validation[i]) + " and shrinkCF " + str(Best_shrink_training[i])
+              " and topK " + str(Best_topK_CF_training[i]) + " and shrinkCF " + str(Best_shrink_training[i])
               + " and topk User  " + str(Best_topK_training[i]))
-        order_MAP(MAP=result_df.loc[10]["MAP"], topK=Best_topK_training[i], learning_rate=Best_topK_CF_Rate_training[i],
-                  lambda1=Best_shrink_training[i], lambda2=Best_shrink_CF_training[i],
-                  Best_learning_rate_phase=Best_topK_CF_Rate_validation, Best_MAP_phase=Best_MAP_validation,
+        order_MAP(MAP=result_df.loc[10]["MAP"], topK=Best_topK_training[i], topk_CF=Best_topK_CF_training[i],
+                  shrink_ele=Best_shrink_training[i], shrink_CF_ele=Best_shrink_CF_training[i],
+                  Best_topK_CF_phase=Best_topK_CF_validation, Best_MAP_phase=Best_MAP_validation,
                   Best_TopK_Phase=Best_topK_validation,
-                  Best_lambda1_phase=Best_shrink_validation, Best_lambda2_phase=Best_shrink_CF_validation,
+                  Best_shrink_phase=Best_shrink_validation, Best_shrink_CF_phase=Best_shrink_CF_validation,
                   Best_alpha_phase=Best_alpha_validation,
                   alpha=Best_alpha_training[i])
 
@@ -229,8 +229,8 @@ Best_MAP_testing=[]
 Best_shrink_CF_training=[]
 Best_shrink_CF_validation=[]
 # Keep the reference to the lambda1, lambda2 e learing_rate e  parameter sorted as the best MAP
-Best_topK_CF_Rate_training = []
-Best_topK_CF_Rate_validation=[]
+Best_topK_CF_training = []
+Best_topK_CF_validation=[]
 Best_Learning_Rate_testing=[]
 Best_shrink_training = []
 Best_shrink_validation=[]
@@ -244,7 +244,7 @@ Best_topK_testing=[]
 # Parameter that declare how many of the best parameter to save, it will be the number of loops for the validantion and test phase
 max_length_best = 40
 # Variable for the num of parameter for topKin,lambda2 e lambda1 the test phase, the number of loops will be this number at the fourth
-size_parameter = 4
+size_parameter = 1
 # Start time
 start_time = datetime.now().strftime("%D:  %H:%M:%S")
 #Paramter for the number of epoch

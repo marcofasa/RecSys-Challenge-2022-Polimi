@@ -8,6 +8,7 @@ import numpy as np
 from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
 from Recommenders.Hybrid.RP3_ITEMHYBRID import RP3_SLIM_BPR
 from numpy import linalg as LA
+from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.NonPersonalizedRecommender import TopPop
 class FirstLayer(BaseItemSimilarityMatrixRecommender):
@@ -18,16 +19,16 @@ class FirstLayer(BaseItemSimilarityMatrixRecommender):
 
     RECOMMENDER_NAME = "ITEMCFCBF_SLIMBPR"
 
-    def  __init__(self, URM_train, URM_rewatches):
+    def  __init__(self, URM_train):
         super(FirstLayer, self).__init__(URM_train)
 
 
         self.firstHybrid=ItemUserHybridKNNRecommender(URM_train=URM_train)
-        self.secondHybrid=RP3_SLIM_BPR(URM_train=URM_rewatches)
+        self.secondHybrid=IALSRecommender(URM_train=URM_train)
 
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
-            feature_weighting_CF="TF-IDF", alpha=0.5,
+            feature_weighting_CF="TF-IDF", alpha=0.7,
             topK=319 , learning_rate=0.001  , n_epochs=300 ,lambda1=0.01578,lambda2=0.32905, norm_scores=False):
         self.alpha = alpha
         self.norm_scores = norm_scores
@@ -36,6 +37,13 @@ class FirstLayer(BaseItemSimilarityMatrixRecommender):
         self.secondHybrid.fit()
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
+        """
+            URM_train and W_sparse must have the same format, CSR
+            :param user_id_array:
+            :param items_to_compute:
+            :return:
+            """
+
         item_scores1 = self.firstHybrid._compute_item_score(user_id_array, items_to_compute)
         item_scores2 = self.secondHybrid._compute_item_score(user_id_array, items_to_compute)
 

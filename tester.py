@@ -17,6 +17,7 @@ from Recommenders.MatrixFactorization.Cython.MatrixFactorization_Cython import M
 from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender
 from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Recommenders.MatrixFactorization.NMFRecommender import NMFRecommender
+from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Utils.Evaluator import EvaluatorHoldout
 import numpy as np
 import scipy.sparse as sps
@@ -35,11 +36,11 @@ matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 #URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 import pandas as pd
 import scipy.sparse as sp
-rewatches_path = os.path.join(dirname, "data/rewatches/rewatches20.csv")
+rewatches_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 
 
-URM_train= Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path, matrix_path_ICM_type=ICM_path)
-URM_rewatches, ICM_genres= Reader.get_URM_ICM_Type_Extended(matrix_path_URM=rewatches_path, matrix_path_ICM_type=ICM_path)
+URM_train, _ = Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path, matrix_path_ICM_type=ICM_path)
+#URM_rewatches, ICM_genres= Reader.get_URM_ICM_Type_Extended(matrix_path_URM=rewatches_path, matrix_path_ICM_type=ICM_path)
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
 
 
@@ -50,14 +51,17 @@ profile_length, profile_length.shape
 block_size = int(len(profile_length)*0.05)
 block_size
 collaborative_recommender_class = {"TopPop": TopPop,
-                                   "UserKNNCF": UserKNNCFRecommender,
-                                   "ItemKNNCF": ItemKNNCFRecommender,
-                                   "P3alpha": P3alphaRecommender,
-                                   "RP3beta": RP3betaRecommender,
-                                   "PureSVD": PureSVDRecommender,
+                                  # "UserKNNCF": UserKNNCFRecommender,
+                                   #"ItemKNNCF": ItemKNNCFRecommender,
+                                   #"P3alpha": P3alphaRecommender,
+                                   #"RP3beta": RP3betaRecommender,
+                                   #"PureSVD": PureSVDRecommender,
                                   # "NMF": NMFRecommender,
                                    "FunkSVD": MatrixFactorization_FunkSVD_Cython,
-                                   "SLIMBPR": SLIM_BPR_Cython
+                                   "IALS": IALSRecommender
+                                   #"SLIMBPR": SLIM_BPR_Cython
+
+
                                    }
 sorted_users = np.argsort(profile_length)
 sorted_users
@@ -76,12 +80,12 @@ for label, recommender_class in collaborative_recommender_class.items():
     recommender_object = recommender_class(URM_train)
     recommender_object.fit()
     recommender_object_dict[label] = recommender_object
-
+'''
 for label, recommender_class in content_recommender_class.items():
     recommender_object = recommender_class(URM_train, ICM_genres)
     recommender_object.fit()
     recommender_object_dict[label] = recommender_object
-
+'''
 
 cutoff = 10
 for group_id in range(0,20):

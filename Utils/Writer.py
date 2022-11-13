@@ -26,7 +26,7 @@ class NameRecommender(Enum):
 class Writer(object):
 
     def __init__(self,NameRecommender,URM,topK=None,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None,
-                 URM_rewatches=None,ICM=None, shrink_CF=None, topk_CF=None):
+                 URM_rewatches=None,ICM=None, shrink_CF=None, topk_CF=None, alpha=None):
         self.NameRecommender=NameRecommender
         self.URM=URM
         self.topK=topK
@@ -54,7 +54,7 @@ class Writer(object):
             self.Recommender = Rankings(URM_train=self.URM)
             self.Recommender.fit()
         if (self.NameRecommender.name == "FirstLayer"):
-            self.Recommender = FirstLayer(URM_train=self.URM, URM_rewatches=URM_rewatches)
+            self.Recommender = FirstLayer(URM_train=self.URM)
             self.Recommender.fit()
         if(self.NameRecommender.name=="P3_ITEMKNNCF"):
             self.Recommender= RP3_SLIM_BPR(URM_train=URM,URM_rewatches= URM_rewatches)
@@ -64,7 +64,7 @@ class Writer(object):
             self.Recommender.fit(norm=np.inf)
         if (self.NameRecommender.name == "USER_ITEM"):
             self.Recommender = ItemUserHybridKNNRecommender(URM_train=URM)
-            self.Recommender.fit(topK_CF=topk_CF,shrink_CF=shrink_CF, shrink=shrink,topK=topK)
+            self.Recommender.fit(topK_CF=topk_CF,shrink_CF=shrink_CF, shrink=shrink,topK=topK, alpha=alpha)
 
 
     def makeSubmission(self):
