@@ -67,8 +67,9 @@ def oneHotEncoder(colstoOneHot, dfPath='../data/data_ICM_type.csv', colsToDelete
 
     save(df, name + "_1Hot")
 
+
 def only_read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                            stats=False, preprocess=0, display=False, switch=False, dictionary=None, saving=False):
+                        stats=False, preprocess=0, display=False, switch=False, dictionary=None, saving=False):
     n_items = 0
 
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
@@ -90,28 +91,27 @@ def only_read_train_csr(matrix_path="../data/interactions_and_impressions.csv", 
     else:
         return matrix_df
 
-def stacker(URM=None,ICM=None):
-    #READING
-    if URM==None:
-        URM = only_read_train_csr(matrix_path="data/interactions_and_impressions.csv",matrix_format="...")
-    if ICM==None:
-        ICM = read_ICM_type(matrix_path="data/data_ICM_type.csv",matrix_format="...")
-    n_users, n_items , n_features= factorization(URM,ICM)
+
+def stacker(URM=None, ICM=None):
+    # READING
+    if URM == None:
+        URM = only_read_train_csr(matrix_path="data/interactions_and_impressions.csv", matrix_format="...")
+    if ICM == None:
+        ICM = read_ICM_type(matrix_path="data/data_ICM_type.csv", matrix_format="...")
+    n_users, n_items, n_features = factorization(URM, ICM)
     import numpy as np
     import scipy.sparse as sps
 
-    #CSR CREATION
+    # CSR CREATION
     URM_csr = sps.csr_matrix((URM["Data"].values,
                               (URM["UserID"].values, URM["ItemID"].values)),
-                             shape = (n_users, n_items)) #always support a desired shape
-
+                             shape=(n_users, n_items))  # always support a desired shape
 
     ICM_csr = sps.csr_matrix((np.ones(len(ICM["ItemID"].values)),
                               (ICM["ItemID"].values, ICM["FeatureID"].values)),
-                             shape = (n_items, n_features))
+                             shape=(n_items, n_features))
 
-    ICM_csr.data = np.ones_like(ICM_csr.data) #transfor array with all 1s if xisting val
-
+    ICM_csr.data = np.ones_like(ICM_csr.data)  # transfor array with all 1s if xisting val
 
     # STACKING
     # N_User * N_Item
@@ -120,7 +120,8 @@ def stacker(URM=None,ICM=None):
 
     # N_item * N_User
     stacked_ICM = sps.csr_matrix(stacked_URM.T)
-    return stacked_URM,stacked_ICM
+    return stacked_URM, stacked_ICM
+
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False):
@@ -228,7 +229,7 @@ def factorization(URM_all_dataframe, ICM_dataframe, enabled_userid=False):
     n_users = len(user_original_ID_to_index)
     n_items = len(item_original_ID_to_index)
     n_features = len(feature_original_ID_to_index)
-    return n_users, n_items , n_features
+    return n_users, n_items, n_features
 
 
 def df_preprocess(df, saving=True, mode=0):
@@ -257,7 +258,10 @@ def df_preprocess(df, saving=True, mode=0):
         elif mode == 3:  # Rewatch for each user-item
             if row[columns[3]] == 1:
                 list_to_convert.append([userid, item])
-        elif mode == 4:  # Rewatch (total) for each user or item
+        elif mode == 4:  # Rewatch (total) for each user
+            if row[columns[3]] == 1:
+                list_to_convert.append(userid)
+        elif mode == 5:  # Rewatch (total) for each user
             if row[columns[3]] == 1:
                 list_to_convert.append(item)
 
@@ -276,6 +280,10 @@ def df_preprocess(df, saving=True, mode=0):
         df = pd.DataFrame(list_to_convert_final, columns=cols)
     elif mode == 4:
         cols = ["UserID", "Rewatch"]
+        c = Counter(list_to_convert).most_common()
+        df = pd.DataFrame(c, columns=cols)
+    elif mode == 5:
+        cols = ["ItemID", "Rewatch"]
         c = Counter(list_to_convert).most_common()
         df = pd.DataFrame(c, columns=cols)
 
@@ -356,7 +364,7 @@ def read_ICM_length(matrix_format="csr", clean=True, matrix_path="../data/data_I
     # Since there's only one feature the FeatureID column is useless (all zeros)
     if clean:
         df = df.drop('feature', axis=1)
-    #df.set_index('ItemID', inplace=True)
+    # df.set_index('ItemID', inplace=True)
     if matrix_format == "csr":
         return sps.csr_matrix(pd.DataFrame(data=df, columns=["EPLength"]).to_numpy())
     else:
@@ -375,14 +383,13 @@ def read_ICM_type(matrix_path="../data/data_ICM_type.csv", matrix_format="csr", 
     # Since there's only one feature the data column is useless (all 1s)
     if clean:
         df = df.drop('data', axis=1)
-    #df.set_index('ItemID', inplace=True)
+    # df.set_index('ItemID', inplace=True)
     if matrix_format == "csr":
         return sps.csr_matrix(pd.DataFrame(data=df, columns=["Type"]).to_numpy())
     elif matrix_format == "csc":
         return sps.csc_matrix(pd.DataFrame(data=df, columns=["Type"]).to_numpy())
     else:
         return df
-
 
 
 def get_user_segmentation(URM_train, URM_val, start_pos, end_pos):
@@ -464,8 +471,6 @@ def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv
     n_items = len(item_original_ID_to_index)
     n_features = len(feature_original_ID_to_index)
 
-
-
     URM_all = sps.csr_matrix((URM[columns[3]].values,
                               (URM[columns[0]].values, URM[columns[1]].values)),
                              shape=(n_users, n_items))
@@ -482,9 +487,10 @@ def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv
 
     return URM_all, ICM_all_type
 
+
 def get_URM_ICM_Type_Extended(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv',
-                     matrix_path_ICM_length='data/data_ICM_length.csv'):
-    columns = ["UserID", "ItemID","Data"]
+                              matrix_path_ICM_length='data/data_ICM_length.csv'):
+    columns = ["UserID", "ItemID", "Data"]
     n_items = 0
     URM = pd.read_csv(filepath_or_buffer=matrix_path_URM,
                       sep=",",
@@ -529,7 +535,7 @@ def get_URM_ICM_Type_Extended(matrix_path_URM, matrix_path_ICM_type='../data_ICM
 
     URM["UserID"] = URM["UserID"].map(user_original_ID_to_index)
     URM["ItemID"] = URM["ItemID"].map(item_original_ID_to_index)
-#    URM[columns[2]] = URM[columns[3]].replace({0: 1, 1: 0})
+    #    URM[columns[2]] = URM[columns[3]].replace({0: 1, 1: 0})
     # matrix_df.loc[~(matrix_df == 0).all(axis=2)]
 
     ICM_type["ItemID"] = ICM_type["ItemID"].map(item_original_ID_to_index)
@@ -538,8 +544,6 @@ def get_URM_ICM_Type_Extended(matrix_path_URM, matrix_path_ICM_type='../data_ICM
     n_users = len(user_original_ID_to_index)
     n_items = len(item_original_ID_to_index)
     n_features = len(feature_original_ID_to_index)
-
-
 
     URM_all = sps.csr_matrix((URM[columns[2]].values,
                               (URM[columns[0]].values, URM[columns[1]].values)),
@@ -559,10 +563,6 @@ def get_URM_ICM_Type_Extended(matrix_path_URM, matrix_path_ICM_type='../data_ICM
 
 
 #################
-
-
-
-
 
 
 if __name__ == '__main__':
