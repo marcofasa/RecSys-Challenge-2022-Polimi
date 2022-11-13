@@ -1,5 +1,7 @@
 from enum import Enum
 import numpy as np
+
+from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
 from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
@@ -23,10 +25,11 @@ class NameRecommender(Enum):
      P3_ITEMKNNCF="P3_ITEMKNNCF"
      HybridNorm = "HybridNorm"
      USER_ITEM="USER_ITEM"
+     ItemKNNCBF="ItemKNNCBF"
 class Writer(object):
 
     def __init__(self,NameRecommender,URM,topK=None,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None,
-                 URM_rewatches=None,ICM=None, shrink_CF=None, topk_CF=None, alpha=None):
+                 URM_rewatches=None,ICM=None, shrink_CF=None, topk_CF=None, alpha=None, stackedICM=None):
         self.NameRecommender=NameRecommender
         self.URM=URM
         self.topK=topK
@@ -65,7 +68,9 @@ class Writer(object):
         if (self.NameRecommender.name == "USER_ITEM"):
             self.Recommender = ItemUserHybridKNNRecommender(URM_train=URM)
             self.Recommender.fit()
-
+        if (self.NameRecommender.name == "ItemKNNCBF"):
+            self.Recommender = ItemKNNCBFRecommender(URM_train=URM, ICM_train=stackedICM)
+            self.Recommender.fit()
 
     def makeSubmission(self):
         current_dir = os.path.abspath(os.path.dirname(__file__))
