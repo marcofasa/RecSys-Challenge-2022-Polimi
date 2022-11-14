@@ -1,12 +1,14 @@
 from Recommenders.BaseSimilarityMatrixRecommender import BaseItemSimilarityMatrixRecommender
 from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
+from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
-from Recommenders.KNN.UserKNNCBFRecommender import UserKNNCBFRecommender
+from Recommenders.GraphBased.P3alphaRecommender import P3alphaRecommender
+from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
 from Recommenders.Recommender_utils import check_matrix
 import numpy as np
 
-class P3_ITEMKNNCF(ItemKNNCBFRecommender ,BaseItemSimilarityMatrixRecommender):
+class P3_ITEMKNNCF(ItemKNNCFRecommender ,BaseItemSimilarityMatrixRecommender):
     """ ItemKNNScoresHybridRecommender
     Hybrid of two prediction scores R = R1*alpha + R2*(1-alpha)
     NB: Rec_1 is itemKNNCF, Rec_2 is SLIM
@@ -14,22 +16,21 @@ class P3_ITEMKNNCF(ItemKNNCBFRecommender ,BaseItemSimilarityMatrixRecommender):
 
     RECOMMENDER_NAME = "SLIM_ITEMKNNCF"
 
-    def __init__(self, URM_train, ICM_train):
-        super(P3_ITEMKNNCF, self).__init__(URM_train, ICM_train)
+    def __init__(self, URM_train):
+        super(P3_ITEMKNNCF, self).__init__(URM_train)
 
         self.URM_train = check_matrix(URM_train.copy(), 'csr')
         self.URM_rewatches= URM_train
-        self.itemKNNCF = ItemKNN_CFCBF_Hybrid_Recommender(URM_train=URM_train, ICM_train=ICM_train)
-        self.SLIM = RP3betaRecommender(URM_train)
+        self.itemKNNCF = UserKNNCFRecommender(URM_train=URM_train)
+        self.SLIM = P3alphaRecommender(URM_train)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=False,
             feature_weighting_CF="TF-IDF", alpha=0.6,
             topK=319, learning_rate=0.001  , n_epochs=300,lambda1=0.150,lambda2=0.33, norm_scores=True):
         self.alpha = alpha
         self.norm_scores = norm_scores
-        self.itemKNNCF.fit(topK=topK_CF, shrink=shrink_CF, similarity=similarity_CF,
-                            feature_weighting=feature_weighting_CF)
-        self.SLIM.fit(topK=582,alpha=0.6114597042322002, beta=0.19455372936603404)
+        self.itemKNNCF.fit()
+        self.SLIM.fit()
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
         """
