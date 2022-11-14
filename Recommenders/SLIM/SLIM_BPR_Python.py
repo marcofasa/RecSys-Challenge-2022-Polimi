@@ -25,9 +25,7 @@ class SLIM_BPR_Python(BaseItemSimilarityMatrixRecommender):
     def __init__(self, URM_train, ):
         super(SLIM_BPR_Python, self).__init__(URM_train)
 
-
-
-    def fit(self, topK = 100, epochs = 25, lambda_i = 0.0025, lambda_j = 0.00025, learning_rate = 0.05):
+    def fit(self, topK = 523, epochs = 25, lambda_i = 0.00011344167078264487, lambda_j = 0.00020294438510099302, learning_rate = 0.0011873782012305995):
         """
 
         :param topK:

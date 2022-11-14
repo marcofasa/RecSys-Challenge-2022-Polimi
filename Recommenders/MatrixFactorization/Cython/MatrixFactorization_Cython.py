@@ -191,7 +191,8 @@ class MatrixFactorization_FunkSVD_Cython(_MatrixFactorization_Cython):
 
 
     def fit(self, **key_args):
-
+        key_args={'sgd_mode': 'adagrad', 'epochs': 5, 'use_bias': True, 'batch_size': 32, 'num_factors': 1, 'item_reg': 0.000730596612962694, 'user_reg':
+        1.1174225566477906e-05, 'learning_rate': 0.07930187706207228, 'negative_interactions_quota': 0.1520286227774158}
         super(MatrixFactorization_FunkSVD_Cython, self).fit(**key_args)
 
 

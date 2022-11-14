@@ -7,7 +7,9 @@ Created on 22/11/17
 """
 
 from Recommenders.Recommender_import_list import *
+from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
 import os as os
+from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 import traceback
 
 import multiprocessing
@@ -64,26 +66,11 @@ def read_data_split_and_search():
     ICM_path = os.path.join(dirname, "data/data_ICM_type.csv")
     ICM_path_length = os.path.join(dirname, "data/data_ICM_length.csv")
 
-    rewatches_path = os.path.join(dirname, "data/rewatches.csv")
 
-    URM_rewatches = pd.read_csv(rewatches_path, sep=",",
-                                skiprows=1,
-                                header=None,
-                                dtype={0: int, 1: int, 2: int},
-                                engine='python')
 
-    columns = ["UserID", "ItemID", "data"]
-    URM_rewatches.columns = columns
-    print(URM_rewatches)
-    URM_rewatches = sp.coo_matrix((URM_rewatches[columns[2]].values,
-                                   (URM_rewatches[columns[0]].values, URM_rewatches[columns[1]].values)
+    URM_train = Reader.read_train_csr(matrix_path=matrix_path)
 
-                                   ))
-    URM_rewatches.tocsr()
-
-    #URM_train, ICM_train  = Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
-
-    URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_rewatches, 0.7)
+    URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, 0.7)
     URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, 0.7)
 
     from Utils.Evaluator import EvaluatorHoldout
@@ -119,6 +106,8 @@ def read_data_split_and_search():
 
     pool = multiprocessing.Pool(processes=int(multiprocessing.cpu_count()), maxtasksperchild=1)
     pool.map(runParameterSearch_Collaborative_partial, collaborative_algorithm_list)
+
+
 '''
     #
     #
