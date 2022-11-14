@@ -14,6 +14,7 @@ from functools import partial
 ##########                  PURE COLLABORATIVE              ##########
 ##########                                                  ##########
 ######################################################################
+from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
 from Recommenders.NonPersonalizedRecommender import TopPop, Random, GlobalEffects
 
 # KNN
@@ -274,16 +275,24 @@ def runHyperparameterSearch_Hybrid(recommender_class, URM_train, ICM_object, ICM
             elif recommender_class is UserKNN_CFCBF_Hybrid_Recommender:
                 hyperparameters_range_dictionary["UCM_weight"] = Real(low = 1e-2, high = 1e2, prior = 'log-uniform')
 
+            if recommender_class is ItemUserHybridKNNRecommender:
 
+                recommender_input_args = SearchInputRecommenderArgs(
+                    CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                    CONSTRUCTOR_KEYWORD_ARGS = {},
+                    FIT_POSITIONAL_ARGS = [],
+                    FIT_KEYWORD_ARGS = {},
+                    EARLYSTOPPING_KEYWORD_ARGS = {},
+                )
+            else:
+                recommender_input_args = SearchInputRecommenderArgs(
+                    CONSTRUCTOR_POSITIONAL_ARGS=[URM_train],
+                    CONSTRUCTOR_KEYWORD_ARGS={},
+                    FIT_POSITIONAL_ARGS=[],
+                    FIT_KEYWORD_ARGS={},
+                    EARLYSTOPPING_KEYWORD_ARGS={},
+                )
 
-
-            recommender_input_args = SearchInputRecommenderArgs(
-                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
-                CONSTRUCTOR_KEYWORD_ARGS = {},
-                FIT_POSITIONAL_ARGS = [],
-                FIT_KEYWORD_ARGS = {},
-                EARLYSTOPPING_KEYWORD_ARGS = {},
-            )
 
 
             if URM_train_last_test is not None:
@@ -677,11 +686,62 @@ def runHyperparameterSearch_Collaborative(recommender_class, URM_train, URM_trai
 
             return
 
+            ##########################################################################################################
+
+        if recommender_class is ItemUserHybridKNNRecommender:
+
+            hyperparameters_range_dictionary = {
+                "topK_CF": Integer(5, 2000),
+                "shrink_CF": Integer(5, 2000),
+                "similarity_CF":Categorical(['cosine', 'jaccard', "asymmetric", "dice", "tversky"]),
+                "topK": Integer(5, 2000),
+                "shrink": Integer(5, 2000),
+                "similarity": Categorical(['cosine', 'jaccard', "asymmetric", "dice", "tversky"]),
+                "alpha":Categorical([0.7,0.6,0.5,0.4,0.3]),
+                "normalize_CF":Categorical([True,False]),
+                "normalize":Categorical([True,False]),
+                "norm_scores":Categorical([True,False]),
+
+            }
+
+
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS=[URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS={},
+                FIT_POSITIONAL_ARGS=[],
+                FIT_KEYWORD_ARGS={},
+                EARLYSTOPPING_KEYWORD_ARGS={},
+            )
+
+            if URM_train_last_test is not None:
+                recommender_input_args_last_test = recommender_input_args.copy()
+                recommender_input_args_last_test.CONSTRUCTOR_POSITIONAL_ARGS[0] = URM_train_last_test
+            else:
+                recommender_input_args_last_test = None
+
+            hyperparameterSearch.search(recommender_input_args,
+                                        hyperparameter_search_space=hyperparameters_range_dictionary,
+                                        n_cases=n_cases,
+                                        n_random_starts=n_random_starts,
+                                        resume_from_saved=resume_from_saved,
+                                        save_model=save_model,
+                                        evaluate_on_test=evaluate_on_test,
+                                        max_total_time=max_total_time,
+                                        output_folder_path=output_folder_path,
+                                        output_file_name_root=output_file_name_root,
+                                        metric_to_optimize=metric_to_optimize,
+                                        cutoff_to_optimize=cutoff_to_optimize,
+                                        recommender_input_args_last_test=recommender_input_args_last_test)
+
+            return
+
 
 
         ##########################################################################################################
 
         if recommender_class in [ItemKNNCFRecommender, UserKNNCFRecommender]:
+
 
             if similarity_type_list is None:
                 similarity_type_list = ['cosine', 'jaccard', "asymmetric", "dice", "tversky"]
@@ -747,6 +807,7 @@ def runHyperparameterSearch_Collaborative(recommender_class, URM_train, URM_trai
                 "topK": Integer(5, 1000),
                 "alpha": Real(low = 0, high = 2, prior = 'uniform'),
                 "normalize_similarity": Categorical([True, False]),
+
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
