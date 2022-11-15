@@ -14,6 +14,8 @@ import traceback
 
 import multiprocessing
 from functools import partial
+import numpy as np
+import scipy.sparse as sps
 
 
 
@@ -53,9 +55,9 @@ def read_data_split_and_search():
         #MatrixFactorization_BPR_Cython,
         #MatrixFactorization_FunkSVD_Cython,
         #PureSVDRecommender,
-        #SLIM_BPR_Cython,
+        SLIM_BPR_Cython,
         #SLIMElasticNetRecommender
-        ItemUserHybridKNNRecommender
+        #ItemUserHybridKNNRecommender
     ]
 
     import os
@@ -74,17 +76,35 @@ def read_data_split_and_search():
     URM_train_last, URM_test = split_train_in_two_percentage_global_sample(URM_train, 0.7)
     URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train_last, 0.7)
 
+
+    ########################
+    group_id=10 #con 2 sarebbe il 10 per cento ( cioè prende il 10 per cento dehgli user con meno intercation)
+    profile_length = np.ediff1d(sps.csr_matrix(URM_train).indptr)
+    block_size = int(len(profile_length) * 0.05)
+    sorted_users = np.argsort(profile_length)
+    start_pos = group_id * block_size
+    end_pos = min((group_id + 1) * block_size, len(profile_length))
+
+    users_in_group = sorted_users[start_pos:end_pos]
+
+    users_in_group_p_len = profile_length[users_in_group]
+
+    users_not_in_group_flag = np.isin(sorted_users, users_in_group, invert=True)
+    users_not_in_group = sorted_users[users_not_in_group_flag]
+
+    ignore_users = users_not_in_group
+
     from Utils.Evaluator import EvaluatorHoldout
 
     cutoff_list = [5, 10, 20]
     metric_to_optimize = "MAP"
     cutoff_to_optimize = 10
 
-    n_cases = 110
+    n_cases = 50
     n_random_starts = int(n_cases/3)
 
-    evaluator_validation = EvaluatorHoldout(URM_validation, cutoff_list = cutoff_list)
-    evaluator_test = EvaluatorHoldout(URM_test, cutoff_list = cutoff_list)
+    evaluator_validation = EvaluatorHoldout(URM_validation, cutoff_list = cutoff_list, ignore_users=ignore_users)
+    evaluator_test = EvaluatorHoldout(URM_test, cutoff_list = cutoff_list, ignore_users=ignore_users)
 
 
     runParameterSearch_Collaborative_partial = partial(runHyperparameterSearch_Collaborative,

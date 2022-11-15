@@ -18,6 +18,7 @@ from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommend
 from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Recommenders.MatrixFactorization.NMFRecommender import NMFRecommender
 from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
+from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
 from Utils.Evaluator import EvaluatorHoldout
 import numpy as np
 import scipy.sparse as sps
@@ -39,7 +40,7 @@ import scipy.sparse as sp
 rewatches_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 
 
-URM_train, _ = Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path, matrix_path_ICM_type=ICM_path)
+URM_train = Reader.read_train_csr(matrix_path=matrix_path)
 #URM_rewatches, ICM_genres= Reader.get_URM_ICM_Type_Extended(matrix_path_URM=rewatches_path, matrix_path_ICM_type=ICM_path)
 URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
 
@@ -50,16 +51,17 @@ profile_length, profile_length.shape
 
 block_size = int(len(profile_length)*0.05)
 block_size
-collaborative_recommender_class = {"TopPop": TopPop,
-                                  # "UserKNNCF": UserKNNCFRecommender,
+collaborative_recommender_class = {#"TopPop": TopPop,
+                                   #"UserKNNCF": UserKNNCFRecommender,
                                    #"ItemKNNCF": ItemKNNCFRecommender,
                                    #"P3alpha": P3alphaRecommender,
                                    #"RP3beta": RP3betaRecommender,
                                    #"PureSVD": PureSVDRecommender,
-                                  # "NMF": NMFRecommender,
-                                   "FunkSVD": MatrixFactorization_FunkSVD_Cython,
-                                   "IALS": IALSRecommender
-                                   #"SLIMBPR": SLIM_BPR_Cython
+                                   #"NMF": NMFRecommender,
+                                   #"FunkSVD": MatrixFactorization_FunkSVD_Cython,
+                                   #"IALS": IALSRecommender
+                                   "SLIMBPR": SLIM_BPR_Cython,
+                                    "ItemKNNHybrid": ItemUserHybridKNNRecommender
 
 
                                    }
