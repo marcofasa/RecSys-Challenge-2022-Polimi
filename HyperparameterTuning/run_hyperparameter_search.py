@@ -693,10 +693,10 @@ def runHyperparameterSearch_Collaborative(recommender_class, URM_train, URM_trai
             hyperparameters_range_dictionary = {
                 "topK_CF": Integer(5, 2000),
                 "shrink_CF": Integer(5, 2000),
-                "similarity_CF":Categorical(['cosine', 'jaccard', "asymmetric", "dice", "tversky"]),
+                "similarity_CF":Categorical(['cosine']),
                 "topK": Integer(5, 2000),
                 "shrink": Integer(5, 2000),
-                "similarity": Categorical(['cosine', 'jaccard', "asymmetric", "dice", "tversky"]),
+                "similarity": Categorical(['cosine']),
                 "alpha":Categorical([0.7,0.6,0.5,0.4,0.3]),
                 "normalize_CF":Categorical([True,False]),
                 "normalize":Categorical([True,False]),
