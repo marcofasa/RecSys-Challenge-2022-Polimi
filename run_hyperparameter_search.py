@@ -55,7 +55,8 @@ def read_data_split_and_search():
         #MatrixFactorization_BPR_Cython,
         #MatrixFactorization_FunkSVD_Cython,
         #PureSVDRecommender,
-        SLIM_BPR_Cython,
+        #SLIM_BPR_Cython,
+        IALSRecommender,
         #SLIMElasticNetRecommender
         #ItemUserHybridKNNRecommender
     ]
@@ -103,8 +104,8 @@ def read_data_split_and_search():
     n_cases = 50
     n_random_starts = int(n_cases/3)
 
-    evaluator_validation = EvaluatorHoldout(URM_validation, cutoff_list = cutoff_list, ignore_users=ignore_users)
-    evaluator_test = EvaluatorHoldout(URM_test, cutoff_list = cutoff_list, ignore_users=ignore_users)
+    evaluator_validation = EvaluatorHoldout(URM_validation, cutoff_list = cutoff_list)
+    evaluator_test = EvaluatorHoldout(URM_test, cutoff_list = cutoff_list)
 
 
     runParameterSearch_Collaborative_partial = partial(runHyperparameterSearch_Collaborative,
