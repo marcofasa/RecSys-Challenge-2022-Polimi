@@ -45,7 +45,7 @@ class Writer(object):
 
         if (self.NameRecommender.name == "ItemKNNCFRecommenderTF_IDF"):
             self.Recommender = ItemKNNCFRecommender(URM_train=self.URM)
-            self.Recommender.fit(topK=self.topK, shrink=self.topK, feature_weighting="TF-IDF")
+            self.Recommender.fit()
 
         if (self.NameRecommender.name == "SLIM_BPR"):
             self.Recommender = SLIM_BPR_Cython(URM_train=self.URM)
