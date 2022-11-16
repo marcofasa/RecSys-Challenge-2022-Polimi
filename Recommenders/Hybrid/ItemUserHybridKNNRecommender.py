@@ -7,13 +7,13 @@ import numpy as np
 from numpy import linalg as LA
 
 
-class ItemUserHybridKNNRecommender(BaseItemSimilarityMatrixRecommender):
+class ItemUserHybridKNNRecommender(ItemKNNCFRecommender, UserKNNCFRecommender):
     """ ItemKNNScoresHybridRecommender
     Hybrid of two prediction scores R = R1*alpha + R2*(1-alpha)
     NB: Rec_1 is itemKNNCF, Rec_2 is SLIM
     """
 
-    RECOMMENDER_NAME = "ITEMCFCBF_ITEMKNNCF"
+    RECOMMENDER_NAME = "ItemUserHybridKNNRecommender"
 
     def __init__(self, URM_train):
         super(ItemUserHybridKNNRecommender, self).__init__(URM_train)
@@ -24,14 +24,17 @@ class ItemUserHybridKNNRecommender(BaseItemSimilarityMatrixRecommender):
         self.UserKNN = UserKNNCFRecommender(URM_train)
 
 
-    def fit(self, topK_CF=728, shrink_CF=506, similarity_CF='cosine', normalize_CF=True,
-            feature_weighting_CF="TF-IDF", alpha=0.6,
-            topK=402, shrink=644, feature_weighting="TF-IDF",  norm_scores=True):
+    def fit(self, topK_CF=1000, shrink_CF=1000, similarity_CF='cosine', normalize_CF=True,
+            feature_weighting_CF="TF-IDF", alpha=0.7,
+            topK=1000, shrink=418, feature_weighting="TF-IDF",
+            similarity='cosine',normalize=True,  norm_scores=True, **fit_args):
         self.alpha = alpha
         self.norm_scores = norm_scores
-        self.itemKNNCF.fit(topK=topK_CF, shrink=shrink_CF, similarity=similarity_CF,
-                            feature_weighting=feature_weighting)
-        self.UserKNN.fit(topK=topK,shrink=shrink,feature_weighting=feature_weighting)
+        self.itemKNNCF.fit(topK=topK_CF,shrink=shrink_CF,similarity=similarity_CF, normalize=normalize_CF)
+        self.UserKNN.fit(topK=topK,shrink=shrink,similarity=similarity, normalize=normalize)
+        super(ItemUserHybridKNNRecommender, self).fit(**fit_args)
+
+
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
         item_scores1 = self.itemKNNCF._compute_item_score(user_id_array, items_to_compute)
