@@ -92,35 +92,103 @@ def only_read_train_csr(matrix_path="../data/interactions_and_impressions.csv", 
         return matrix_df
 
 
-def stacker(URM=None, ICM=None):
-    # READING
-    if URM is None:
-        URM = only_read_train_csr( matrix_format="...")
-    if ICM is None:
-        ICM = read_ICM_type(matrix_path="data/data_ICM_type.csv", matrix_format="...")
-    n_users, n_items, n_features = factorization(URM, ICM)
-    import numpy as np
-    import scipy.sparse as sps
 
-    # CSR CREATION
-    URM_csr = sps.csr_matrix((URM["Data"].values,
-                              (URM["UserID"].values, URM["ItemID"].values)),
+# TODO check this method
+def df_col_replace(df, col_to_change, values_to_change):
+    df[col_to_change]=df[col_to_change].replace(values_to_change)
+    return
+
+'''
+Structure of the ICM -> UserID,ItemID,FeatureID
+ASSERT IT HAS 3 COLS
+'''
+def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../data/rewatches.csv',ICM_cols_to_drop=None,ICM_values_to_change=None,mapping=True):
+    #if mapping:
+    URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
+                                    sep=",",
+                                    skiprows=1,
+                                    header=None,
+                                    dtype={0: int, 1: int, 2: str, 3: int},
+                                    engine='python')
+
+    URM_all_dataframe.columns = ["UserID", "ItemID", "NULL", "Interaction"]
+    URM_all_dataframe["Interaction"] = URM_all_dataframe["Interaction"].replace({0: 1, 1: 0})
+    ICM_dataframe = pd.read_csv(filepath_or_buffer=ICM_path,
+                                sep=",",
+                                skiprows=1,
+                                header=None,
+                                dtype={0: int, 1: int, 2: int},
+                                engine='python')
+
+    if(ICM_cols_to_drop!=None):
+        for col in ICM_cols_to_drop:
+            ICM_dataframe = ICM_dataframe.drop(col, axis=1)
+    if(ICM_values_to_change!=None):
+        df_col_replace(ICM_dataframe,2,ICM_values_to_change)
+
+    ICM_dataframe.columns = ["UserID", "ItemID", "FeatureID"]
+
+    # Some nan values exist, remove them
+    ICM_dataframe = ICM_dataframe[ICM_dataframe["FeatureID"].notna()]
+
+    n_features = len(ICM_dataframe["FeatureID"].unique())
+
+    print("Number of tags\t {}, Number of item-tag tuples {}".format(n_features, len(ICM_dataframe)))
+    ## Build the sparse URM and ICM matrices
+
+    mapped_id, original_id = pd.factorize(URM_all_dataframe["UserID"].unique())
+
+    print("Unique UserID in the URM are {}".format(len(original_id)))
+
+    all_item_indices = pd.concat([URM_all_dataframe["UserID"], ICM_dataframe["UserID"]], ignore_index=True)
+    mapped_id, original_id = pd.factorize(all_item_indices.unique())
+
+    print("Unique UserID in the URM and ICM are {}".format(len(original_id)))
+
+    user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+    mapped_id, original_id = pd.factorize(URM_all_dataframe["ItemID"].unique())
+
+    print("Unique ItemID in the URM are {}".format(len(original_id)))
+
+    all_item_indices = pd.concat([URM_all_dataframe["ItemID"], ICM_dataframe["ItemID"]], ignore_index=True)
+    mapped_id, original_id = pd.factorize(all_item_indices.unique())
+
+    print("Unique ItemID in the URM and ICM are {}".format(len(original_id)))
+
+    item_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+    mapped_id, original_id = pd.factorize(ICM_dataframe["FeatureID"].unique())
+    feature_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+
+    print("Unique FeatureID in the URM are {}".format(len(feature_original_ID_to_index)))
+
+    URM_all_dataframe["UserID"] = URM_all_dataframe["UserID"].map(user_original_ID_to_index)
+    URM_all_dataframe["ItemID"] = URM_all_dataframe["ItemID"].map(item_original_ID_to_index)
+    ICM_dataframe["UserID"] = ICM_dataframe["UserID"].map(user_original_ID_to_index)
+    ICM_dataframe["ItemID"] = ICM_dataframe["ItemID"].map(item_original_ID_to_index)
+    ICM_dataframe["FeatureID"] = ICM_dataframe["FeatureID"].map(feature_original_ID_to_index)
+
+
+    n_users = len(user_original_ID_to_index)
+    n_items = len(item_original_ID_to_index)
+    n_features = len(feature_original_ID_to_index)
+    URM_all = sps.csr_matrix((URM_all_dataframe["Interaction"].values,
+                              (URM_all_dataframe["UserID"].values, URM_all_dataframe["ItemID"].values)),
                              shape=(n_users, n_items))  # always support a desired shape
 
-    ICM_csr = sps.csr_matrix((np.ones(len(ICM["ItemID"].values)),
-                              (ICM["ItemID"].values, ICM["FeatureID"].values)),
+    ICM_all = sps.csr_matrix((np.ones(len(ICM_dataframe["ItemID"].values)),
+                              (ICM_dataframe["ItemID"].values, ICM_dataframe["FeatureID"].values)),
                              shape=(n_items, n_features))
 
-    ICM_csr.data = np.ones_like(ICM_csr.data)  # transfor array with all 1s if xisting val
+    ICM_all.data = np.ones_like(ICM_all.data)  # transfor array with all 1s if xisting val
 
-    # STACKING
-    # N_User * N_Item
-    stacked_URM = sps.vstack([URM_csr, ICM_csr.T])
+
+    stacked_URM = sps.vstack([URM_all, ICM_all.T])
     stacked_URM = sps.csr_matrix(stacked_URM)
 
-    # N_item * N_User
     stacked_ICM = sps.csr_matrix(stacked_URM.T)
+
     return stacked_URM, stacked_ICM
+
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
@@ -351,6 +419,7 @@ def csr_stats(csr, n_items):
     pyplot.xlabel('Sorted User')
     pyplot.show()
 
+
 def read_ICM_rewatches(matrix_path="../data/rewatches.csv", matrix_format="csr", clean=True):
     df = pd.read_csv(filepath_or_buffer=matrix_path,
                      sep=",",
@@ -370,6 +439,7 @@ def read_ICM_rewatches(matrix_path="../data/rewatches.csv", matrix_format="csr",
         return sps.csc_matrix(pd.DataFrame(data=df, columns=["Type"]).to_numpy())
     else:
         return df
+
 
 def read_ICM_length(matrix_format="csr", clean=True, matrix_path="../data/data_ICM_type.csv"):
     df = pd.read_csv(filepath_or_buffer=matrix_path,
