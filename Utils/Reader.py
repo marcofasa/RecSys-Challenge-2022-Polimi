@@ -102,8 +102,8 @@ def df_col_replace(df, col_to_change, values_to_change):
 Structure of the ICM -> UserID,ItemID,FeatureID
 ASSERT IT HAS 3 COLS
 '''
-def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../data/rewatches.csv',ICM_cols_to_drop=None,ICM_values_to_change=None,mapping=True):
-    #if mapping:
+def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../data/rewatches.csv',ICM_cols_to_drop=None,ICM_values_to_change=None):
+    # CON MAPPING
     URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
                                     sep=",",
                                     skiprows=1,
