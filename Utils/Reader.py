@@ -186,6 +186,70 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # valsToPlace: dictionary of vals of kind:
     #  {oldval1: newval1 , oldval2: newval1,...}
 
+def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
+                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False):
+    n_items = 0
+    matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
+                            sep=",",
+                            skiprows=1,
+                            header=None,
+                            dtype={0: int, 1: int, 2: int},
+                            engine='python')
+    matrix_df.columns = ["UserID","ItemID","Data"]
+    mapped_id, original_id = pd.factorize(matrix_df["UserID"].unique())
+
+    print("Unique UserID in the URM are {}".format(len(original_id)))
+
+    all_item_indices = pd.concat([matrix_df["UserID"], matrix_df["UserID"]], ignore_index=True)
+    mapped_id, original_id = pd.factorize(all_item_indices.unique())
+
+    print("Unique UserID in the URM and ICM are {}".format(len(original_id)))
+
+    user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+    # matrix_df.loc[~(matrix_df == 0).all(axis=2)]
+    # matrix_df = matrix_df.drop(matrix_df[matrix_df[columns[3]] ==0].index)
+    # flipping 0 and 1 (from now on:
+    # 0--> just description see interaction
+    # 1--> real interaction
+
+    # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 5, 1: 2})
+    if switch:
+        df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
+
+    if preprocess > 0:
+        print("Preprocessing with mode: " + str(preprocess))
+        df_preprocess(matrix_df, saving=saving, mode=preprocess)
+
+    print(len(matrix_df))
+
+    if display:
+        print("Displaying..")
+        print(matrix_df.head())
+
+    # stats
+    if stats:
+        n_items = df_stats(matrix_df)
+
+    matrix = sps.coo_matrix((matrix_df[columns[3]].values,
+                             (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
+                             ))
+
+    # TODO also consider other shows appeared
+    # if is 0 (just description read) is less important
+
+    if matrix_format == "csr":
+        if stats:
+            csr_stats(matrix.tocsr(), n_items)
+        return matrix.tocsr()
+    else:
+        return matrix.tocsc()
+
+    # colsToChange: The column where replace values
+    # valsToPlace: dictionary of vals of kind:
+    #  {oldval1: newval1 , oldval2: newval1,...}
+
+
 
 def factorization(URM_all_dataframe, ICM_dataframe, enabled_userid=False):
     mapped_id, original_id = pd.factorize(URM_all_dataframe["UserID"].unique())
