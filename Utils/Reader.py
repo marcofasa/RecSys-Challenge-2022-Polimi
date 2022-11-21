@@ -9,6 +9,7 @@ from matplotlib import pyplot
 from tqdm import tqdm
 import os
 
+from Recommenders.Recommender_utils import check_matrix
 from Utils.Evaluator import EvaluatorHoldout
 
 columns = ["UserID", "ItemID", "Interaction", "Data"]
@@ -92,17 +93,20 @@ def only_read_train_csr(matrix_path="../data/interactions_and_impressions.csv", 
         return matrix_df
 
 
-
 # TODO check this method
 def df_col_replace(df, col_to_change, values_to_change):
-    df[col_to_change]=df[col_to_change].replace(values_to_change)
+    df[col_to_change] = df[col_to_change].replace(values_to_change)
     return
+
 
 '''
 Structure of the ICM -> UserID,ItemID,FeatureID
 ASSERT IT HAS 3 COLS
 '''
-def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../data/rewatches.csv',ICM_cols_to_drop=None,ICM_values_to_change=None):
+
+
+def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../data/rewatches.csv',
+            ICM_cols_to_drop=None, ICM_values_to_change=None):
     # CON MAPPING
     URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
                                     sep=",",
@@ -120,11 +124,11 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
                                 dtype={0: int, 1: int, 2: int},
                                 engine='python')
 
-    if(ICM_cols_to_drop!=None):
+    if (ICM_cols_to_drop != None):
         for col in ICM_cols_to_drop:
             ICM_dataframe = ICM_dataframe.drop(col, axis=1)
-    if(ICM_values_to_change!=None):
-        df_col_replace(ICM_dataframe,2,ICM_values_to_change)
+    if (ICM_values_to_change != None):
+        df_col_replace(ICM_dataframe, 2, ICM_values_to_change)
 
     ICM_dataframe.columns = ["UserID", "ItemID", "FeatureID"]
 
@@ -167,7 +171,6 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
     ICM_dataframe["ItemID"] = ICM_dataframe["ItemID"].map(item_original_ID_to_index)
     ICM_dataframe["FeatureID"] = ICM_dataframe["FeatureID"].map(feature_original_ID_to_index)
 
-
     n_users = len(user_original_ID_to_index)
     n_items = len(item_original_ID_to_index)
     n_features = len(feature_original_ID_to_index)
@@ -181,14 +184,12 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
 
     ICM_all.data = np.ones_like(ICM_all.data)  # transfor array with all 1s if xisting val
 
-
     stacked_URM = sps.vstack([URM_all, ICM_all.T])
     stacked_URM = sps.csr_matrix(stacked_URM)
 
     stacked_ICM = sps.csr_matrix(stacked_URM.T)
 
     return stacked_URM, stacked_ICM
-
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
@@ -715,6 +716,73 @@ def get_URM_ICM_Type_Extended(matrix_path_URM, matrix_path_ICM_type='../data_ICM
     ICM_all_type.data = np.ones_like(ICM_all_type.data)
 
     return URM_all, ICM_all_type
+
+
+def combine(ICM: sps.csr_matrix, URM: sps.csr_matrix):
+    return sps.hstack((URM.T, ICM), format='csr')
+
+
+def binarize(x):
+    if x != 0:
+        return 1
+    return x
+
+
+def binarize_ICM(ICM: sps.csr_matrix):
+    vbinarize = np.vectorize(binarize)
+
+    ICM.data = vbinarize(ICM.data)
+
+
+def linear_scaling_confidence(URM_train, alpha):
+    C = check_matrix(URM_train, format="csr", dtype=np.float32)
+    C.data = 1.0 + alpha * C.data
+
+    return C
+
+
+def load_ICM_rewatches(file_path='../data/rewatches.csv'):
+    import pandas as pd
+    import scipy.sparse as sps
+
+    metadata = pd.read_csv(file_path)
+
+    item_icm_list = metadata['ItemID'].tolist()
+    feature_list = metadata['UserID'].tolist()
+    weight_list = metadata['Rewatch'].tolist()
+
+    return sps.coo_matrix((weight_list, (item_icm_list, feature_list)))
+
+
+def load_ICM_displayed(file_path='../data/displayed.csv', weight_list_col='Displayed'):
+    import pandas as pd
+    import scipy.sparse as sps
+
+    metadata = pd.read_csv(file_path)
+
+    item_icm_list = metadata['ItemID'].tolist()
+    feature_list = metadata['UserID'].tolist()
+    weight_list = metadata[weight_list_col].tolist()
+
+    return sps.coo_matrix((weight_list, (item_icm_list, feature_list)))
+
+
+'''
+Works with both data_ICM_type and data_ICM_length
+'''
+
+
+def load_ICM(file_path, item_icm_col="item_id", feature_icm_col="feature_id", weight_icm_col="data"):
+    import pandas as pd
+    import scipy.sparse as sps
+
+    metadata = pd.read_csv(file_path)
+
+    item_icm_list = metadata[item_icm_col].tolist()
+    feature_list = metadata[feature_icm_col].tolist()
+    weight_list = metadata[weight_icm_col].tolist()
+
+    return sps.coo_matrix((weight_list, (item_icm_list, feature_list)))
 
 
 #################
