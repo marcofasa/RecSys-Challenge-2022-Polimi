@@ -14,6 +14,7 @@ from functools import partial
 ##########                  PURE COLLABORATIVE              ##########
 ##########                                                  ##########
 ######################################################################
+from Recommenders.Hybrid.FirstLayer import FirstLayer
 from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
 from Recommenders.NonPersonalizedRecommender import TopPop, Random, GlobalEffects
 
@@ -916,28 +917,45 @@ def runHyperparameterSearch_Collaborative(recommender_class, URM_train, URM_trai
                 EARLYSTOPPING_KEYWORD_ARGS = earlystopping_keywargs,
             )
 
-        ##########################################################################################################
+            ##########################################################################################################
 
         if recommender_class is IALSRecommender:
-
             hyperparameters_range_dictionary = {
                 "num_factors": Integer(1, 200),
                 "epochs": Categorical([300]),
                 "confidence_scaling": Categorical(["linear", "log"]),
-                "alpha": Real(low = 1e-3, high = 50.0, prior = 'log-uniform'),
-                "epsilon": Real(low = 1e-3, high = 10.0, prior = 'log-uniform'),
-                "reg": Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                "alpha": Real(low=1e-3, high=50.0, prior='log-uniform'),
+                "epsilon": Real(low=1e-3, high=10.0, prior='log-uniform'),
+                "reg": Real(low=1e-5, high=1e-2, prior='log-uniform'),
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
-                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-                CONSTRUCTOR_KEYWORD_ARGS = {},
-                FIT_POSITIONAL_ARGS = [],
-                FIT_KEYWORD_ARGS = {},
-                EARLYSTOPPING_KEYWORD_ARGS = earlystopping_keywargs,
+                CONSTRUCTOR_POSITIONAL_ARGS=[URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS={},
+                FIT_POSITIONAL_ARGS=[],
+                FIT_KEYWORD_ARGS={},
+                EARLYSTOPPING_KEYWORD_ARGS=earlystopping_keywargs,
             )
 
+        #########################################################################################
+        if recommender_class is FirstLayer:
+            hyperparameters_range_dictionary = {
+                "num_factors": Integer(1, 200),
+                "epochs": Categorical([300]),
+                "confidence_scaling": Categorical(["linear", "log"]),
+                "alpha": Real(low=1e-3, high=50.0, prior='log-uniform'),
+                "epsilon": Real(low=1e-3, high=10.0, prior='log-uniform'),
+                "reg": Real(low=1e-5, high=1e-2, prior='log-uniform'),
+                "alpha_hybrid": Categorical([0.7, 0.6, 0.5, 0.4])
+            }
 
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS=[URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS={},
+                FIT_POSITIONAL_ARGS=[],
+                FIT_KEYWORD_ARGS={},
+                EARLYSTOPPING_KEYWORD_ARGS=earlystopping_keywargs,
+            )
         ##########################################################################################################
 
         if recommender_class is PureSVDRecommender:
@@ -1005,15 +1023,17 @@ def runHyperparameterSearch_Collaborative(recommender_class, URM_train, URM_trai
                 "lambda_i": Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 "lambda_j": Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 "learning_rate": Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
+                "positive_threshold_BPR": Categorical([0,5,10,15,20]),
+                #"train_with_sparse_weights":Categorical([False,True]),
+                #'allow_train_with_sparse_weights': Categorical([False,True])
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
                 CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
                 CONSTRUCTOR_KEYWORD_ARGS = {},
                 FIT_POSITIONAL_ARGS = [],
-                FIT_KEYWORD_ARGS = {"positive_threshold_BPR": None,
-                                    'train_with_sparse_weights': False,
-                                    'allow_train_with_sparse_weights': False},
+                FIT_KEYWORD_ARGS = {
+                                    },
                 EARLYSTOPPING_KEYWORD_ARGS = earlystopping_keywargs,
             )
 

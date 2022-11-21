@@ -5,7 +5,7 @@ Created on 22/11/17
 
 @author: Maurizio Ferrari Dacrema
 """
-
+from Recommenders.Hybrid.FirstLayer import FirstLayer
 from Recommenders.Recommender_import_list import *
 from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
 import os as os
@@ -48,17 +48,19 @@ def read_data_split_and_search():
     collaborative_algorithm_list = [
         #Random,
         #TopPop,
-        #P3alphaRecommender,
-        #RP3betaRecommender,
-        #ItemKNNCFRecommender,
-        #UserKNNCFRecommender,
+        P3alphaRecommender,
+        RP3betaRecommender,
+        ItemKNNCFRecommender,
+        UserKNNCFRecommender,
         #MatrixFactorization_BPR_Cython,
         #MatrixFactorization_FunkSVD_Cython,
         #PureSVDRecommender,
-        #SLIM_BPR_Cython,
-        IALSRecommender,
+        #IALSRecommender,
+        #NMFRecommender,
+        SLIM_BPR_Cython,
         #SLIMElasticNetRecommender
-        #ItemUserHybridKNNRecommender
+        ItemUserHybridKNNRecommender,
+        #FirstLayer,
     ]
 
     import os
@@ -66,6 +68,8 @@ def read_data_split_and_search():
     import scipy.sparse as sp
     from Utils import Reader
     dirname = os.path.dirname(__file__)
+    matrix_extended = os.path.join(dirname, "data/extended.csv")
+
     matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
     ICM_path = os.path.join(dirname, "data/data_ICM_type.csv")
     ICM_path_length = os.path.join(dirname, "data/data_ICM_length.csv")
@@ -79,15 +83,15 @@ def read_data_split_and_search():
 
 
     ########################
-    group_id=10 #con 2 sarebbe il 10 per cento ( cioè prende il 10 per cento dehgli user con meno intercation)
+    #group_id=10 #con 2 sarebbe il 10 per cento ( cioè prende il 10 per cento dehgli user con meno intercation)
     profile_length = np.ediff1d(sps.csr_matrix(URM_train).indptr)
-    block_size = int(len(profile_length) * 0.05)
+    block_size =10* int(len(profile_length) * 0.05)
     sorted_users = np.argsort(profile_length)
-    start_pos = group_id * block_size
-    end_pos = min((group_id + 1) * block_size, len(profile_length))
+    start_pos = 0
+    end_pos = min(block_size, len(profile_length))
 
     users_in_group = sorted_users[start_pos:end_pos]
-
+    print("this is the numbers of user" + str(len(users_in_group)))
     users_in_group_p_len = profile_length[users_in_group]
 
     users_not_in_group_flag = np.isin(sorted_users, users_in_group, invert=True)
@@ -101,7 +105,7 @@ def read_data_split_and_search():
     metric_to_optimize = "MAP"
     cutoff_to_optimize = 10
 
-    n_cases = 50
+    n_cases = 25
     n_random_starts = int(n_cases/3)
 
     evaluator_validation = EvaluatorHoldout(URM_validation, cutoff_list = cutoff_list)

@@ -192,7 +192,7 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False):
+                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False, clean=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -218,7 +218,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
@@ -235,6 +235,8 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # stats
     if stats:
         n_items = df_stats(matrix_df)
+    if clean:
+        matrix_df = matrix_df.drop_duplicates(subset='Data', keep=False)
 
     matrix = sps.coo_matrix((matrix_df[columns[3]].values,
                              (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
@@ -261,7 +263,7 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
                             sep=",",
                             skiprows=1,
                             header=None,
-                            dtype={0: int, 1: int, 2: int},
+                            dtype={0: int, 1: int, 2: float},
                             engine='python')
     matrix_df.columns = ["UserID","ItemID","Data"]
     mapped_id, original_id = pd.factorize(matrix_df["UserID"].unique())
@@ -281,7 +283,7 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 5, 1: 2})
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0, -1:-0.15})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
