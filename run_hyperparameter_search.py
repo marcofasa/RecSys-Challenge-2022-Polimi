@@ -50,16 +50,16 @@ def read_data_split_and_search():
         #TopPop,
         P3alphaRecommender,
         RP3betaRecommender,
-        ItemKNNCFRecommender,
-        UserKNNCFRecommender,
-        #MatrixFactorization_BPR_Cython,
-        #MatrixFactorization_FunkSVD_Cython,
-        #PureSVDRecommender,
-        #IALSRecommender,
+        #ItemKNNCFRecommender,
+        #UserKNNCFRecommender,
+        MatrixFactorization_BPR_Cython,
+        MatrixFactorization_FunkSVD_Cython,
+        PureSVDRecommender,
+        IALSRecommender,
         #NMFRecommender,
         SLIM_BPR_Cython,
-        #SLIMElasticNetRecommender
-        ItemUserHybridKNNRecommender,
+        SLIMElasticNetRecommender
+        #ItemUserHybridKNNRecommender,
         #FirstLayer,
     ]
 
@@ -76,7 +76,7 @@ def read_data_split_and_search():
 
 
 
-    URM_train = Reader.read_train_csr(matrix_path=matrix_path)
+    URM_train = Reader.read_train_csr_extended(matrix_path=matrix_extended)
 
     URM_train_last, URM_test = split_train_in_two_percentage_global_sample(URM_train, 0.7)
     URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train_last, 0.7)

@@ -34,7 +34,7 @@ class PureSVDRecommender(BaseSVDRecommender):
         super(PureSVDRecommender, self).__init__(URM_train, verbose = verbose)
 
 
-    def fit(self, num_factors=100, random_seed = None):
+    def fit(self, num_factors=1, random_seed = None):
 
         start_time = time.time()
         self._print("Computing SVD decomposition...")

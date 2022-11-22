@@ -60,13 +60,13 @@ class SLIM_BPR_Cython(BaseItemSimilarityMatrixRecommender, Incremental_Training_
         self.free_mem_threshold = free_mem_threshold
 
 
-    def fit(self, epochs=20,
-            positive_threshold_BPR = None,
+    def fit(self, epochs=45,
+            positive_threshold_BPR = 3,
             train_with_sparse_weights = None,
             allow_train_with_sparse_weights = True,
-            symmetric = True,
+            symmetric = False,
             random_seed = None,
-            lambda_i =   0.0005550097969682582, lambda_j = 0.0010376290649961283, learning_rate =0.0004763370390767988, topK = 219,
+            lambda_i =     0.0019431500561940254, lambda_j = 0.001075889680240656, learning_rate = 0.0005530497995433594, topK =  110,
             sgd_mode='adam', gamma=0, beta_1=0, beta_2=0,
             **earlystopping_kwargs):
 

@@ -1,7 +1,8 @@
 import scipy.sparse as sp
 import pandas as pd
 from Data_manager.split_functions.split_train_validation_random_holdout import \
-    split_train_in_two_percentage_global_sample
+    split_train_in_two_percentage_global_sample, split_train_in_two_percentage_global_sample_double
+
 from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 
@@ -54,7 +55,7 @@ URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 '''
 import scipy.sparse as sps
 
-URM_train, ICM_train= Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path, matrix_path_ICM_type=ICM_path)
+#URM_train, ICM_train= Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path, matrix_path_ICM_type=ICM_path)
 stacked_path = os.path.join(dirname, "data/Type_1Hot.csv")
 
 
@@ -89,8 +90,6 @@ print(ICM_length_OneHot)
 #ICM_length_OneHot = sp.coo_matrix((ICM_length_OneHot.values))
 #ICM_length_OneHot.tocsr()
 
-stacked_URM = sps.vstack([URM_train, ICM_train.T])
-stacked_URM = sps.csr_matrix(stacked_URM)
 
 
 
@@ -108,7 +107,7 @@ import scipy.sparse as sps
 
 
 #URM_train, ICM_train=Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path,matrix_path_ICM_type=ICM_path)
-#URM_train=Reader.read_train_csr(matrix_path=matrix_path)
+#URM_train, ICM_train=Reader.get_URM_ICM_Type(matrix_path_URM=matrix_path, matrix_path_ICM_type=ICM_path)
 #URM_rewatches, URM_test = split_train_in_two_percentage_global_sample(URM_rewatches,0.7)
 
 
@@ -117,10 +116,9 @@ import scipy.sparse as sps
 from Utils.Writer import NameRecommender
 from Utils.Writer import Writer
 from Recommenders.Hybrid.Rankings import Rankings
+#URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 
-from Recommenders.Hybrid.P3_ITEMKNNCF import P3_ITEMKNNCF
-#a=Writer(NameRecommender.FirstLayer,URM=URM_train, URM_rewatches=URM_rewatches, shrink_CF=451, shrink=337, topK=155, topk_CF=1098, alpha=0.5)
-#a.makeSubmission()
+from Recommenders.Hybrid.P3_RP3 import P3_RP3
 
 
 
@@ -149,29 +147,44 @@ recommender_ItemKNNCBF.fit()
 
 import numpy as np
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
-from Recommenders.GraphBased.P3alphaRecommender import P3alphaRecommender
-from Recommenders.Hybrid.GraphBasedHybrid import GraphBasedHybrid
-from Recommenders.Hybrid.ITEMKNNCF_SLIM_BPR import ITEMKNNCF_SLIM_BPR
+from Recommenders.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython
+from Recommenders.Hybrid.P3_RP3 import P3_RP3
 from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLossScoresHybridRecommender
 #URM_rewatches,ICM_train=Reader.get_URM_ICM_Type_Extended(matrix_path_URM=matrix_extended,matrix_path_ICM_type=ICM_path)
 
 #URM_rewatches, URM_test= split_train_in_two_percentage_global_sample(URM_rewatches, train_percentage=0.70)
 
-URM_train, URM_test= split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
-#URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
+URM_train=Reader.read_train_csr(matrix_path=matrix_path,stats=True, value=True)
+URM_train_extended=Reader.read_train_csr_extended(matrix_path=matrix_extended)
+#URM_train1, URM_test1, URM_train2, URM_test2 =split_train_in_two_percentage_global_sample_double(URM_train_extended,URM_train)
+#RM_train,URM_test=split_train_in_two_percentage_global_sample(URM_train_extended,train_percentage=0.7)
 
+a=Writer(NameRecommender.USER_ITEM,URM=URM_train,URM_rewatches=URM_train_extended)
+a.makeSubmission()
 
-
+#URM_train_normal, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
+#URM_train, URM_validation,URM_train_extended, URM_validation_extended=split_train_in_two_percentage_global_sample_double(URM_train,URM_train_extended)
+URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
 from  Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Recommenders.Hybrid.FirstLayer import FirstLayer
-evaluator = EvaluatorHoldout(URM_test_list=URM_test, cutoff_list=[10], isRanking=False)
+from Recommenders.Hybrid.NewHybrid import NewHybrid
+evaluator_validation = EvaluatorHoldout(URM_test_list=URM_validation, cutoff_list=[10], isRanking=False)
+#evaluator_test= EvaluatorHoldout(URM_test_list=URM_test, cutoff_list=[10], isRanking=False)
+from Recommenders.Hybrid.P3_RP3 import P3_RP3
+
+
+RECOMMENDER = FirstLayer(URM_train=URM_train, URM_extended=URM_train_extended)
+RECOMMENDER.fit()
+result_df_validation, _ = evaluator_validation.evaluateRecommender(RECOMMENDER)
+print(" This is the MAP for validation: {}".format( result_df_validation.loc[10]["MAP"]))
 
 
 from Recommenders.Hybrid.RP3_ITEMHYBRID import RP3_SLIM_BPR
-RECOMMENDER=ItemUserHybridKNNRecommender(URM_train=stacked_URM)
+RECOMMENDER=MatrixFactorization_BPR_Cython(URM_train=URM_train_normal)
 RECOMMENDER.fit()
-result_df, _ = evaluator.evaluateRecommender(RECOMMENDER)
-print(" This is the MAP for FIrstLayer: {}".format( result_df.loc[10]["MAP"]))
+result_df_test, _ = evaluator_test.evaluateRecommender(RECOMMENDER)
+print(" This is the MAP for validation: {}".format( result_df_validation.loc[10]["MAP"]))
+print(" This is the MAP for testing: {}".format( result_df_test.loc[10]["MAP"]))
 
 
 

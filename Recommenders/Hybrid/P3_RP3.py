@@ -8,7 +8,7 @@ from Recommenders.KNN.UserKNNCFRecommender import UserKNNCFRecommender
 from Recommenders.Recommender_utils import check_matrix
 import numpy as np
 
-class P3_ITEMKNNCF(ItemKNNCFRecommender ,BaseItemSimilarityMatrixRecommender):
+class P3_RP3(ItemKNNCFRecommender , BaseItemSimilarityMatrixRecommender):
     """ ItemKNNScoresHybridRecommender
     Hybrid of two prediction scores R = R1*alpha + R2*(1-alpha)
     NB: Rec_1 is itemKNNCF, Rec_2 is SLIM
@@ -17,20 +17,20 @@ class P3_ITEMKNNCF(ItemKNNCFRecommender ,BaseItemSimilarityMatrixRecommender):
     RECOMMENDER_NAME = "SLIM_ITEMKNNCF"
 
     def __init__(self, URM_train):
-        super(P3_ITEMKNNCF, self).__init__(URM_train)
+        super(P3_RP3, self).__init__(URM_train)
 
         self.URM_train = check_matrix(URM_train.copy(), 'csr')
         self.URM_rewatches= URM_train
-        self.itemKNNCF = UserKNNCFRecommender(URM_train=URM_train)
-        self.SLIM = P3alphaRecommender(URM_train)
+        self.RP3 = RP3betaRecommender(URM_train=URM_train)
+        self.P3 = P3alphaRecommender(URM_train)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=False,
-            feature_weighting_CF="TF-IDF", alpha=0.6,
-            topK=319, learning_rate=0.001  , n_epochs=300,lambda1=0.150,lambda2=0.33, norm_scores=True):
+            feature_weighting_CF="TF-IDF", alpha=0.5,
+            topK=319, learning_rate=0.001  , n_epochs=300,lambda1=0.150,lambda2=0.33, norm_scores=False):
         self.alpha = alpha
         self.norm_scores = norm_scores
-        self.itemKNNCF.fit()
-        self.SLIM.fit()
+        self.RP3.fit()
+        self.P3.fit()
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
         """
@@ -40,8 +40,8 @@ class P3_ITEMKNNCF(ItemKNNCFRecommender ,BaseItemSimilarityMatrixRecommender):
         :return:
         """
 
-        item_scores1 = self.itemKNNCF._compute_item_score(user_id_array, items_to_compute)
-        item_scores2 = self.SLIM._compute_item_score(user_id_array, items_to_compute)
+        item_scores1 = self.RP3._compute_item_score(user_id_array, items_to_compute)
+        item_scores2 = self.P3._compute_item_score(user_id_array, items_to_compute)
 
         if self.norm_scores:
             mean1 = np.mean(item_scores1)

@@ -29,7 +29,8 @@ class RP3betaRecommender(BaseItemSimilarityMatrixRecommender):
                                                                                         self.beta, self.min_rating, self.topK,
                                                                                         self.implicit, self.normalize_similarity)
 
-    def fit(self, alpha=0.6114597042322002, beta=0.19455372936603404, min_rating=0, topK=582, implicit=True, normalize_similarity=True):
+
+    def fit(self, alpha= 0.0, beta= 0.019952352647040487, min_rating=0, topK=1000, implicit=True, normalize_similarity=False):
 
         self.topK = topK
         self.alpha = alpha

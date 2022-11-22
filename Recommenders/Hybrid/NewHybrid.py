@@ -1,6 +1,6 @@
 from Recommenders.BaseSimilarityMatrixRecommender import BaseItemSimilarityMatrixRecommender
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
-from Recommenders.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_FunkSVD_Cython
+from Recommenders.GraphBased.P3alphaRecommender import P3alphaRecommender
 from Recommenders.Recommender_utils import check_matrix
 import numpy as np
 
@@ -12,13 +12,13 @@ class NewHybrid(BaseItemSimilarityMatrixRecommender):
 
     RECOMMENDER_NAME = "SLIM_ITEMKNNCF"
 
-    def __init__(self, URM_train, URM_rewatches):
+    def __init__(self, URM_train):
         super(NewHybrid, self).__init__(URM_train)
 
         self.URM_train = check_matrix(URM_train.copy(), 'csr')
         self.URM_rewatches= URM_train
         self.itemKNNCF = ItemKNNCFRecommender(URM_train)
-        self.SLIM = MatrixFactorization_FunkSVD_Cython(URM_rewatches)
+        self.SLIM = P3alphaRecommender(URM_train)
 
     def fit(self, topK_CF=343, shrink_CF=488, similarity_CF='cosine', normalize_CF=True,
             feature_weighting_CF="TF-IDF", alpha=0.6,
