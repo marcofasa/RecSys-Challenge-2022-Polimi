@@ -191,7 +191,7 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
 
 
 
-def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
+def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",value=True,
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False, clean=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
@@ -218,7 +218,10 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04})
+    if value:
+        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04})
+    else:
+        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
@@ -283,7 +286,7 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0, -1:-0.15})
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04, -1: -0.15})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
@@ -430,6 +433,16 @@ def delete_column(df, colName):
 
 
 def df_stats(dataframe):
+    URM_mask_description = dataframe.copy()
+    URM_mask_description[columns[3]] = URM_mask_description[columns[3]].replace({1: 0, 0.04: 1})
+    URM_mask_description=URM_mask_description.loc[~(URM_mask_description == 0).all(axis=1)]
+    n_description= URM_mask_description.shape
+
+    URM_mask_interaction = dataframe.copy()
+    URM_mask_interaction[columns[3]] = URM_mask_interaction[columns[3]].replace({1: 0, 0.04: 1})
+
+    URM_mask_interaction=URM_mask_interaction.loc[~(URM_mask_description == 0).all(axis=1)]
+    n_interaction = URM_mask_interaction.shape
     userID_unique = dataframe["UserID"].unique()
     itemID_unique = dataframe["ItemID"].unique()
 
@@ -444,6 +457,7 @@ def df_stats(dataframe):
     print("Average interactions per item {:.2f}\n".format(n_interactions / n_items))
 
     print("Sparsity {:.2f} %".format((1 - float(n_interactions) / (n_items * n_users)) * 100))
+    print("Number of one in table " + str(n_interaction) + "  number of description saw " + str(n_description))
     print("--------------------")
 
     return n_items

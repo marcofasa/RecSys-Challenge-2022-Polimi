@@ -10,6 +10,10 @@ from Recommenders.Hybrid.Rankings import Rankings
 from Recommenders.Hybrid.RP3_ITEMHYBRID import RP3_SLIM_BPR
 from Recommenders.Hybrid.ItemUserHybridKNNRecommender import ItemUserHybridKNNRecommender
 from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLossScoresHybridRecommender
+from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender
+from Recommenders.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython
+from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
+
 import os
 import csv
 import pandas as pd
@@ -22,10 +26,13 @@ class NameRecommender(Enum):
      Hybrid="Hybrid"
      FirstLayer="FirstLayer"
      Rankings="Rankings"
-     P3_ITEMKNNCF="P3_ITEMKNNCF"
+     P3_ITEMKNNCF="P3_RP3"
      HybridNorm = "HybridNorm"
      USER_ITEM="USER_ITEM"
      ItemKNNCBF="ItemKNNCBF"
+     PureSVD="PureSVD"
+     MatrixBPR="MatrixBPR"
+     RP3="RP3"
 class Writer(object):
 
     def __init__(self,NameRecommender,URM,topK=None,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None,
@@ -57,9 +64,9 @@ class Writer(object):
             self.Recommender = Rankings(URM_train=self.URM)
             self.Recommender.fit()
         if (self.NameRecommender.name == "FirstLayer"):
-            self.Recommender = FirstLayer(URM_train=self.URM)
+            self.Recommender = FirstLayer(URM_train=self.URM, URM_extended=URM_rewatches)
             self.Recommender.fit()
-        if(self.NameRecommender.name=="P3_ITEMKNNCF"):
+        if(self.NameRecommender.name=="P3_RP3"):
             self.Recommender= RP3_SLIM_BPR(URM_train=URM,URM_rewatches= URM_rewatches)
             self.Recommender.fit()
         if (self.NameRecommender.name == "HybridNorm"):
@@ -70,6 +77,15 @@ class Writer(object):
             self.Recommender.fit()
         if (self.NameRecommender.name == "ItemKNNCBF"):
             self.Recommender = ItemKNNCBFRecommender(URM_train=URM, ICM_train=stackedICM)
+            self.Recommender.fit()
+        if (self.NameRecommender.name == "PureSVD"):
+            self.Recommender = PureSVDRecommender(URM_train=URM)
+            self.Recommender.fit()
+        if (self.NameRecommender.name == "MatrixBPR"):
+            self.Recommender = MatrixFactorization_BPR_Cython(URM_train=URM)
+            self.Recommender.fit()
+        if (self.NameRecommender.name == "RP3"):
+            self.Recommender = RP3betaRecommender(URM_train=URM)
             self.Recommender.fit()
 
     def makeSubmission(self):
