@@ -313,7 +313,7 @@ class Evaluator(object):
 
         results_run_string = get_result_string_df(results_df)
 
-        return results_df, results_run_string
+        return results_df , results_run_string
 
 
 

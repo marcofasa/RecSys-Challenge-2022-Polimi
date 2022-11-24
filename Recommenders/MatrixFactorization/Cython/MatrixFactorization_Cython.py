@@ -157,9 +157,12 @@ class MatrixFactorization_BPR_Cython(_MatrixFactorization_Cython):
     RECOMMENDER_NAME = "MatrixFactorization_BPR_Cython_Recommender"
 
     def __init__(self, *pos_args, **key_args):
+
         super(MatrixFactorization_BPR_Cython, self).__init__(*pos_args, algorithm_name="MF_BPR", **key_args)
 
     def fit(self, **key_args):
+        key_args = {'sgd_mode': 'sgd', 'epochs': 9, 'num_factors': 171, 'batch_size': 128,
+                     'positive_reg': 0.00890446039252569, 'negative_reg': 0.0009185210616376595, 'learning_rate': 0.018319049959903726}
 
         key_args["use_bias"] = False
         key_args["negative_interactions_quota"] = 0.0
@@ -191,8 +194,8 @@ class MatrixFactorization_FunkSVD_Cython(_MatrixFactorization_Cython):
 
 
     def fit(self, **key_args):
-        key_args={'sgd_mode': 'adagrad', 'epochs': 5, 'use_bias': True, 'batch_size': 32, 'num_factors': 1, 'item_reg': 0.000730596612962694, 'user_reg':
-        1.1174225566477906e-05, 'learning_rate': 0.07930187706207228, 'negative_interactions_quota': 0.1520286227774158}
+        key_args={'sgd_mode': 'adagrad', 'epochs': 5, 'use_bias': True, 'batch_size': 32, 'num_factors': 1,
+                  'item_reg': 0.000730596612962694, 'user_reg': 1.1174225566477906e-05, 'learning_rate': 0.07930187706207228, 'negative_interactions_quota': 0.152028622777415}
         super(MatrixFactorization_FunkSVD_Cython, self).fit(**key_args)
 
 

@@ -1,0 +1,43 @@
+First_layer: ItemCF_SLIM + ITEMCF_RBeta= 0.4
+ItemKNN_SLIMBRP: 0.449 no rewatches: topK= 523, n_epochs= 100, alpaha=0.6 lambda1= 0.00011344167078264487, lambda2= 0.00020294438510099302, learning_rate= 0.0011873782012305995)
+SUBMISSION=3.8
+P3_ITEMHYBRID: MAP:    0.407        topK_CF=1000, shrink=1000
+        self.RP3beta.fit(topK=582,alpha=0.6114597042322002, beta=0.19455372936603404) SUMBISSION= 4.1
+ITEMKNNCF_ITEMCFCBF MAP:0.410
+ItemKNN_SLIMBRP: 0.424 si rewatches: topK_CF=343, shrink_CF=488,  normalize_CF=True, feature_weighting_CF="TF-IDF", alpha=0.7,
+            topK=400, learning_rate=0.001  , n_epochs=150,lambda1=0.150,lambda2=0.33, norm_scores=True) SUMBISSION=4.2
+
+try the new normalize item score with ITEM_SLIM!!!!!
+try the csv with negative value
+
+
+
+BEST: ItemKNN_SLIMBRP: SI REWATCHES   topK_CF=343, shrink_CF=488,  normalize_CF=True, feature_weighting_CF="TF-IDF", alpha=0.7,
+            topK=314, learning_rate=0.001 (1E08), n_epochs=300, lambda1=0.150,lambda2=0.33, norm_scores=True)
+
+SLIM_BPR E ITEMKNNCF
+Learning rate: 0.001   topK: 369  lambda1 0.39203945948039676lamda2 0.24474019645338627 alpha= 0.7  epochs=  300 SUMBISSION=4.3 with rewatches
+
+ITEM_USER:
+SLIM_BPR E ITEMKNNCF WITH NORM:                                                                             SUMBMISSION=4.1
+ITEM_USER  urm train entrambi TF-IDF entrambi e alpha=0.6  local_map= 14.6                                  SUBMISSION=4.367
+ITE_USER: USER REWATCH NO FW E ITEM NORMAL E FW=CF ALPHA=0.6   REWATHCES=STD_NORMALIZE
+            LOCAL_MAP = 0.155 SUBMISSION=0.3
+ITE_USER , topK_CF=728, shrink_CF=506,  normalize_CF=True,topK=402, shrink=644,                              submission= SUB 0.441 BEST!!!
+             feature_weighting_CF="TF-IDF", alpha=0.6,
+ITEM USER: aplha=0.6 Item:{'topK': 1000, 'shrink': 1000, 'similarity': 'cosine', 'normalize': True, 'feature_weighting': 'TF-IDF'}
+                     User: topK': 1000, 'shrink': 418, 'similarity': 'cosine', 'normalize': True, 'feature_weighting': 'TF-IDF'}
+
+ITEM USER LAYER CON SLIM REWATCHES SUBMISSION=0.40
+ITEM_SLIMBRP
+
+FIRST LAYER CON ITEM_USER E GRAPH BASED SUBMISSION=0.38
+
+FIRST LAYER CON ITEM USER E RP3_SLIM CON REWATCHES SUL SECONDO SUBMISSION=0.39
+
+PROVARE NUOVE URM CON NUOVE PARTIZIONI DI USER, CAMBIARE GLI 0 CON DEI VALORI E VEDERE COME VA
+
+#TODO:
+Sembrerebbe che gli 0 hanno una parte informativa a quanto con 0.05-> abbiamo fatto 0.45 senza ottimizzare i parametri quindi le prossime submission dovranno essere
+orientate in quella parte!!
+Forse è un po troppo 0.05 adesso tengo 0.03

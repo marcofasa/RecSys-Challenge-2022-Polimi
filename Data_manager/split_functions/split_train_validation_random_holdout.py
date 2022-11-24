@@ -175,7 +175,10 @@ def split_train_in_two_percentage_global_sample_double(URM_all, URM_all2, train_
                                                       auto_create_row_mapper=False)
 
     URM_train = sps.coo_matrix(URM_all)
+    print(URM_train)
     URM_train2 = sps.coo_matrix(URM_all2)
+    print(URM_train2)
+
 
     indices_for_sampling = np.arange(0, URM_all.nnz, dtype=np.int)
     np.random.shuffle(indices_for_sampling)

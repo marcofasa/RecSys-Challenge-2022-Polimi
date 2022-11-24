@@ -1,7 +1,13 @@
 import matplotlib.pyplot as plt
 
 from Data_manager.split_functions.split_train_validation_random_holdout import \
-    split_train_in_two_percentage_global_sample
+    split_train_in_two_percentage_global_sample,split_train_in_two_percentage_global_sample_double
+
+from Recommenders.Hybrid.FirstLayer import FirstLayer
+from Recommenders.Hybrid.NewHybrid import NewHybrid
+from Recommenders.Hybrid.NewHybrid1 import NewHybrid1
+from Recommenders.Hybrid.P3_RP3 import P3_RP3
+from Recommenders.Hybrid.Rankings import Rankings
 from Utils import Reader
 from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
 from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
@@ -28,6 +34,8 @@ import os
 dirname = os.path.dirname(__file__)
 ICM_path=  os.path.join(dirname, "data/data_ICM_type.csv")
 matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
+matrix_extended = os.path.join(dirname, "data/extended.csv")
+
 
 
 #URM_train= Reader.read_train_csr(matrix_path)
@@ -37,19 +45,20 @@ matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 #URM_train=Reader.read_train_csr(matrix_path=matrix_path)
 import pandas as pd
 import scipy.sparse as sp
-rewatches_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
 
 
 URM_train = Reader.read_train_csr(matrix_path=matrix_path)
+URM_extended=Reader.read_train_csr_extended(matrix_path=matrix_extended)
 #URM_rewatches, ICM_genres= Reader.get_URM_ICM_Type_Extended(matrix_path_URM=rewatches_path, matrix_path_ICM_type=ICM_path)
-URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
+URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_extended, train_percentage=0.70)
+#URM_extended,URM3,URM_train, URM_test = split_train_in_two_percentage_global_sample_double(URM_train, URM_extended,train_percentage=0.7)
 
 
 
 profile_length = np.ediff1d(sps.csr_matrix(URM_train).indptr)
 profile_length, profile_length.shape
 
-block_size = int(len(profile_length)*0.05)
+block_size = int(len(profile_length)*0.1)
 block_size
 collaborative_recommender_class = {#"TopPop": TopPop,
                                    #"UserKNNCF": UserKNNCFRecommender,
@@ -59,14 +68,19 @@ collaborative_recommender_class = {#"TopPop": TopPop,
                                    #"PureSVD": PureSVDRecommender,
                                    #"NMF": NMFRecommender,
                                    #"FunkSVD": MatrixFactorization_FunkSVD_Cython,
-                                   #"IALS": IALSRecommender
-                                   "SLIMBPR": SLIM_BPR_Cython,
-                                    "ItemKNNHybrid": ItemUserHybridKNNRecommender
+                                   #"IALS": IALSRecommender,
+                                   #"SLIMBPR": SLIM_BPR_Cython,
+                                    "SLIM_BPR_MASK":SLIM_BPR_Cython
+                                   #"FirstLayer":FirstLayer,
+                                    #"ItemKNNHybrid": ItemUserHybridKNNRecommender,
+                                   #"NewHybrid": NewHybrid,
+                                    #"NewHybrid1":NewHybrid1,
+                                   #"P3_RP3": P3_RP3
 
 
                                    }
 sorted_users = np.argsort(profile_length)
-sorted_users
+
 
 
 MAP_recommender_per_group= {}
@@ -79,7 +93,9 @@ content_recommender_class = {"ItemKNNCBF": ItemKNNCBFRecommender,
 recommender_object_dict = {}
 
 for label, recommender_class in collaborative_recommender_class.items():
+
     recommender_object = recommender_class(URM_train)
+
     recommender_object.fit()
     recommender_object_dict[label] = recommender_object
 '''
@@ -90,7 +106,7 @@ for label, recommender_class in content_recommender_class.items():
 '''
 
 cutoff = 10
-for group_id in range(0,20):
+for group_id in range(0,10):
 
     start_pos = group_id * block_size
     end_pos = min((group_id + 1) * block_size, len(profile_length))
@@ -113,7 +129,7 @@ for group_id in range(0,20):
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[cutoff], ignore_users=users_not_in_group)
 
     for label, recommender in recommender_object_dict.items():
-        result_df, _ = evaluator_test.evaluateRecommender(recommender)
+        result_df, _  = evaluator_test.evaluateRecommender(recommender)
         if label in MAP_recommender_per_group:
             MAP_recommender_per_group[label].append(result_df.loc[cutoff]["MAP"])
         else:
