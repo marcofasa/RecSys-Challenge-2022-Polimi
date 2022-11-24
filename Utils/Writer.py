@@ -13,7 +13,7 @@ from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLo
 from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender
 from Recommenders.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
-
+from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 import os
 import csv
 import pandas as pd
@@ -33,6 +33,7 @@ class NameRecommender(Enum):
      PureSVD="PureSVD"
      MatrixBPR="MatrixBPR"
      RP3="RP3"
+     IALS="IALS"
 class Writer(object):
 
     def __init__(self,NameRecommender,URM,topK=None,shrink=None,learning_rate=None, lambda1=None,lambda2=None, n_epochs=None,
@@ -86,6 +87,9 @@ class Writer(object):
             self.Recommender.fit()
         if (self.NameRecommender.name == "RP3"):
             self.Recommender = RP3betaRecommender(URM_train=URM)
+            self.Recommender.fit()
+        if (self.NameRecommender.name == "IALS"):
+            self.Recommender = IALSRecommender(URM_train=URM)
             self.Recommender.fit()
 
     def makeSubmission(self):

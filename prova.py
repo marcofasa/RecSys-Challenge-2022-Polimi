@@ -154,17 +154,17 @@ from Recommenders.Hybrid.DifferentLossScoresHybridRecommender import DifferentLo
 
 #URM_rewatches, URM_test= split_train_in_two_percentage_global_sample(URM_rewatches, train_percentage=0.70)
 
-URM_train=Reader.read_train_csr(matrix_path=matrix_path,stats=True, value=True)
-URM_train_extended=Reader.read_train_csr_extended(matrix_path=matrix_extended)
+URM_train_normal=Reader.read_train_csr(matrix_path=matrix_path,stats=False, value=True)
+#URM_train_extended=Reader.read_train_csr_extended(matrix_path=matrix_extended, value=False)
 #URM_train1, URM_test1, URM_train2, URM_test2 =split_train_in_two_percentage_global_sample_double(URM_train_extended,URM_train)
 #RM_train,URM_test=split_train_in_two_percentage_global_sample(URM_train_extended,train_percentage=0.7)
 
-a=Writer(NameRecommender.USER_ITEM,URM=URM_train,URM_rewatches=URM_train_extended)
-a.makeSubmission()
+#a=Writer(NameRecommender.FirstLayer,URM=URM_train_normal, URM_rewatches=URM_train_extended)
+#a.makeSubmission()
 
 #URM_train_normal, URM_test = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
 #URM_train, URM_validation,URM_train_extended, URM_validation_extended=split_train_in_two_percentage_global_sample_double(URM_train,URM_train_extended)
-URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.70)
+URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train_normal, train_percentage=0.70)
 from  Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Recommenders.Hybrid.FirstLayer import FirstLayer
 from Recommenders.Hybrid.NewHybrid import NewHybrid
@@ -173,18 +173,18 @@ evaluator_validation = EvaluatorHoldout(URM_test_list=URM_validation, cutoff_lis
 from Recommenders.Hybrid.P3_RP3 import P3_RP3
 
 
-RECOMMENDER = FirstLayer(URM_train=URM_train, URM_extended=URM_train_extended)
+RECOMMENDER = ItemUserHybridKNNRecommender(URM_train=URM_train)
 RECOMMENDER.fit()
 result_df_validation, _ = evaluator_validation.evaluateRecommender(RECOMMENDER)
-print(" This is the MAP for validation: {}".format( result_df_validation.loc[10]["MAP"]))
+#print(" This is the MAP for validation: {}".format( result_df_validation.loc[10]["MAP"]))
 
 
 from Recommenders.Hybrid.RP3_ITEMHYBRID import RP3_SLIM_BPR
-RECOMMENDER=MatrixFactorization_BPR_Cython(URM_train=URM_train_normal)
-RECOMMENDER.fit()
-result_df_test, _ = evaluator_test.evaluateRecommender(RECOMMENDER)
+#RECOMMENDER=MatrixFactorization_BPR_Cython(URM_train=URM_train_normal)
+#RECOMMENDER.fit()
+#result_df_test, _ = evaluator_test.evaluateRecommender(RECOMMENDER)
 print(" This is the MAP for validation: {}".format( result_df_validation.loc[10]["MAP"]))
-print(" This is the MAP for testing: {}".format( result_df_test.loc[10]["MAP"]))
+#print(" This is the MAP for testing: {}".format( result_df_test.loc[10]["MAP"]))
 
 
 

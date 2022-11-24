@@ -218,8 +218,38 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
+    matrix_df = matrix_df.drop(columns[2], axis=1)
+
+    user_interactions=matrix_df.loc[matrix_df['Data'] == 0]
+    user_interactions['Data']=user_interactions['Data'].replace({0: 1})
+
+    user_description=matrix_df.loc[matrix_df['Data'] ==1]
+    #print(user_interactions)
+
+
+    '''
+    common_value_user=np.intersect1d(user_description['UserID'],user_interactions['UserID'])
+    for user in common_value_user:
+        common_value_item = np.intersect1d(user_description['ItemID'][user], user_interactions['ItemID'][user])
+        for item in common_value_item:
+            print("helo")
+    
+    print(str(common_value) + "those are the commun values")
+    '''
+    a_index = user_description.set_index(['UserID','ItemID','Data']).index
+    b_index = user_interactions.set_index(['UserID','ItemID','Data']).index
+
+    mask = a_index.isin(b_index)
+    user_description=user_description[mask]
+    #new_df  = matrix_df[user_description['UserID'].isin(user_interactions['UserID']) & user_description['ItemID'].isin(user_interactions['ItemID']) ]
+    print(user_description.head(n=20))
+    print(user_interactions.head(n=10))
+    user_description['Data']=user_description['Data'].replace({0: 1})
+
+    matrix_df = pd.concat([user_description, user_interactions], axis=0)
+
     if value:
-        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04})
+        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.25})
     else:
         matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
     if switch:
@@ -241,6 +271,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     if clean:
         matrix_df = matrix_df.drop_duplicates(subset='Data', keep=False)
 
+
     matrix = sps.coo_matrix((matrix_df[columns[3]].values,
                              (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
                              ))
@@ -259,7 +290,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # valsToPlace: dictionary of vals of kind:
     #  {oldval1: newval1 , oldval2: newval1,...}
 
-def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
+def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",value=True,
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
@@ -286,7 +317,11 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04, -1: -0.15})
+    if value:
+        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.3, -1: -0.15})
+    else:
+        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0, -1: -0.15})
+
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
@@ -433,10 +468,23 @@ def delete_column(df, colName):
 
 
 def df_stats(dataframe):
-    URM_mask_description = dataframe.copy()
-    URM_mask_description[columns[3]] = URM_mask_description[columns[3]].replace({1: 0, 0.04: 1})
-    URM_mask_description=URM_mask_description.loc[~(URM_mask_description == 0).all(axis=1)]
-    n_description= URM_mask_description.shape
+    matrix_df = dataframe.copy()
+    counts=matrix_df['Data'].value_counts()
+    print(counts)
+    matrix = sps.coo_matrix((matrix_df[columns[3]].values,
+                             (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
+                             ))
+    matrix=matrix.tocsc()
+    n_description=  np.ediff1d(matrix.indptr)
+    n_description = np.sort(n_description)
+
+    import matplotlib.pyplot as pyplot
+
+
+    pyplot.plot(n_description, 'ro')
+    pyplot.ylabel('Num features ')
+    pyplot.xlabel('Sorted items')
+    pyplot.show()
 
     URM_mask_interaction = dataframe.copy()
     URM_mask_interaction[columns[3]] = URM_mask_interaction[columns[3]].replace({1: 0, 0.04: 1})

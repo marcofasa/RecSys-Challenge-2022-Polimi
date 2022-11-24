@@ -59,14 +59,13 @@ class SLIM_BPR_Cython(BaseItemSimilarityMatrixRecommender, Incremental_Training_
         assert free_mem_threshold>=0.0 and free_mem_threshold<=1.0, "SLIM_BPR_Recommender: free_mem_threshold must be between 0.0 and 1.0, provided was '{}'".format(free_mem_threshold)
         self.free_mem_threshold = free_mem_threshold
 
-
-    def fit(self, epochs=45,
-            positive_threshold_BPR = 3,
+    def fit(self, epochs=105,
+            positive_threshold_BPR = 0.5,
             train_with_sparse_weights = None,
             allow_train_with_sparse_weights = True,
-            symmetric = False,
+            symmetric = True,
             random_seed = None,
-            lambda_i =     0.0019431500561940254, lambda_j = 0.001075889680240656, learning_rate = 0.0005530497995433594, topK =  110,
+            lambda_i =      3.431240611657406e-05, lambda_j =  0.002719668980160838, learning_rate =  0.0037344167397627415, topK =  443,
             sgd_mode='adam', gamma=0, beta_1=0, beta_2=0,
             **earlystopping_kwargs):
 

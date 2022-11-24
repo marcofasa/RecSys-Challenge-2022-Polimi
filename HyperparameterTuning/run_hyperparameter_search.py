@@ -1023,7 +1023,7 @@ def runHyperparameterSearch_Collaborative(recommender_class, URM_train, URM_trai
                 "lambda_i": Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 "lambda_j": Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 "learning_rate": Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
-                "positive_threshold_BPR": Categorical([0,5,10,15,20]),
+                "positive_threshold_BPR": Categorical([0,0.5,1,1.5,2]),
                 #"train_with_sparse_weights":Categorical([False,True]),
                 #'allow_train_with_sparse_weights': Categorical([False,True])
             }
