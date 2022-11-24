@@ -191,7 +191,18 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
 
     return stacked_URM, stacked_ICM
 
+def load_URM(file_path="../data/URM_new.csv"):
+    import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 
+    data = pd.read_csv(file_path)
+
+    import scipy.sparse as sps
+
+    user_list = data['UserID'].tolist()
+    item_list = data['ItemID'].tolist()
+    rating_list = data['Data'].tolist()
+
+    return sps.coo_matrix((rating_list, (user_list, item_list))).tocsr()
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False,
                    clean=False):
@@ -373,7 +384,9 @@ def factorization(URM_all_dataframe, ICM_dataframe, enabled_userid=False):
 
 def df_preprocess(df, saving=True, mode=0):
     list_to_convert = []
-    list_to_check=[]
+    list_to_check001 = set()
+    list_to_check02 = set()
+    list_to_check = []
     df.sort_values(by=['Data'])
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Passing through all dataset to gather infos..."):
         # print(index)
@@ -407,7 +420,26 @@ def df_preprocess(df, saving=True, mode=0):
             if row[columns[3]] == 1:
                 list_to_convert.append(item)
         elif mode == 6:
-            #with set you have no duplicates
+            # with set you have no duplicates
+            for i in displayList:
+                if (userid, i) not in list_to_check001:
+                    list_to_convert.append([userid, i, 0.01])
+                    list_to_check001.add((userid, i))
+            if row[columns[3]] == 1:
+                if (userid, item) in list_to_check02:
+                    # list_to_convert.remove([userid, item, 0.2])
+                    list_to_convert.append([userid, item, 0.8])
+                elif (userid, item) in list_to_check001:
+                    # list_to_convert.remove([userid, item, 0.01])
+                    list_to_convert.append([userid, item, 0.5])
+                else:
+                    list_to_convert.append([userid, item, 1])
+            elif row[columns[3]] == 0:
+                if (userid, item) not in list_to_check02:
+                    list_to_convert.append([userid, item, 0.2])
+                    list_to_check02.add((userid, item))
+        elif mode == 7:
+            # with duplicates--> Full exposition
             for i in displayList:
                 list_to_convert.append([userid, i, 0.01])
                 list_to_check.append([userid, i, 0.01])
@@ -423,7 +455,6 @@ def df_preprocess(df, saving=True, mode=0):
             elif row[columns[3]] == 0:
                 list_to_convert.append([userid, item, 0.2])
                 list_to_check.append([userid, item, 0.2])
-
 
     if mode < 3:
         df1 = pd.DataFrame(list_to_convert, columns=columns)
@@ -446,10 +477,9 @@ def df_preprocess(df, saving=True, mode=0):
         cols = ["ItemID", "Rewatch"]
         c = Counter(list_to_convert).most_common()
         df = pd.DataFrame(c, columns=cols)
-    elif mode == 6:
+    elif mode == 6 or mode == 7:
         cols = ["UserID", "ItemID", "Data"]
-        #list_to_convert = list(dict.fromkeys(list_to_convert))  # removing duplicates
-
+        # list_to_convert = list(dict.fromkeys(list_to_convert))  # removing duplicates
         del df
         df = pd.DataFrame(list_to_convert, columns=cols)
 
@@ -820,4 +850,4 @@ def load_ICM(file_path, item_icm_col="item_id", feature_icm_col="feature_id", we
 
 
 if __name__ == '__main__':
-    read_train_csr(preprocess=6,saving=True)
+    read_train_csr(preprocess=6, saving=True)
