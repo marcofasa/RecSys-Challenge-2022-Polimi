@@ -9,6 +9,7 @@ from matplotlib import pyplot
 from tqdm import tqdm
 import os
 
+from Recommenders.Recommender_utils import check_matrix
 from Utils.Evaluator import EvaluatorHoldout
 
 columns = ["UserID", "ItemID", "Interaction", "Data"]
@@ -92,17 +93,20 @@ def only_read_train_csr(matrix_path="../data/interactions_and_impressions.csv", 
         return matrix_df
 
 
-
 # TODO check this method
 def df_col_replace(df, col_to_change, values_to_change):
-    df[col_to_change]=df[col_to_change].replace(values_to_change)
+    df[col_to_change] = df[col_to_change].replace(values_to_change)
     return
+
 
 '''
 Structure of the ICM -> UserID,ItemID,FeatureID
 ASSERT IT HAS 3 COLS
 '''
-def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../data/rewatches.csv',ICM_cols_to_drop=None,ICM_values_to_change=None):
+
+
+def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../data/rewatches.csv',
+            ICM_cols_to_drop=None, ICM_values_to_change=None):
     # CON MAPPING
     URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
                                     sep=",",
@@ -120,11 +124,11 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
                                 dtype={0: int, 1: int, 2: int},
                                 engine='python')
 
-    if(ICM_cols_to_drop!=None):
+    if (ICM_cols_to_drop != None):
         for col in ICM_cols_to_drop:
             ICM_dataframe = ICM_dataframe.drop(col, axis=1)
-    if(ICM_values_to_change!=None):
-        df_col_replace(ICM_dataframe,2,ICM_values_to_change)
+    if (ICM_values_to_change != None):
+        df_col_replace(ICM_dataframe, 2, ICM_values_to_change)
 
     ICM_dataframe.columns = ["UserID", "ItemID", "FeatureID"]
 
@@ -167,7 +171,6 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
     ICM_dataframe["ItemID"] = ICM_dataframe["ItemID"].map(item_original_ID_to_index)
     ICM_dataframe["FeatureID"] = ICM_dataframe["FeatureID"].map(feature_original_ID_to_index)
 
-
     n_users = len(user_original_ID_to_index)
     n_items = len(item_original_ID_to_index)
     n_features = len(feature_original_ID_to_index)
@@ -181,7 +184,6 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
 
     ICM_all.data = np.ones_like(ICM_all.data)  # transfor array with all 1s if xisting val
 
-
     stacked_URM = sps.vstack([URM_all, ICM_all.T])
     stacked_URM = sps.csr_matrix(stacked_URM)
 
@@ -190,8 +192,7 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
     return stacked_URM, stacked_ICM
 
 
-
-def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",value=True,
+def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False, clean=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
@@ -218,40 +219,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    matrix_df = matrix_df.drop(columns[2], axis=1)
-
-    user_interactions=matrix_df.loc[matrix_df['Data'] == 0]
-    user_interactions['Data']=user_interactions['Data'].replace({0: 1})
-
-    user_description=matrix_df.loc[matrix_df['Data'] ==1]
-    #print(user_interactions)
-
-
-    '''
-    common_value_user=np.intersect1d(user_description['UserID'],user_interactions['UserID'])
-    for user in common_value_user:
-        common_value_item = np.intersect1d(user_description['ItemID'][user], user_interactions['ItemID'][user])
-        for item in common_value_item:
-            print("helo")
-    
-    print(str(common_value) + "those are the commun values")
-    '''
-    a_index = user_description.set_index(['UserID','ItemID','Data']).index
-    b_index = user_interactions.set_index(['UserID','ItemID','Data']).index
-
-    mask = a_index.isin(b_index)
-    user_description=user_description[mask]
-    #new_df  = matrix_df[user_description['UserID'].isin(user_interactions['UserID']) & user_description['ItemID'].isin(user_interactions['ItemID']) ]
-    print(user_description.head(n=20))
-    print(user_interactions.head(n=10))
-    user_description['Data']=user_description['Data'].replace({0: 1})
-
-    matrix_df = pd.concat([user_description, user_interactions], axis=0)
-
-    if value:
-        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.25})
-    else:
-        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
@@ -271,7 +239,6 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     if clean:
         matrix_df = matrix_df.drop_duplicates(subset='Data', keep=False)
 
-
     matrix = sps.coo_matrix((matrix_df[columns[3]].values,
                              (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
                              ))
@@ -290,7 +257,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # valsToPlace: dictionary of vals of kind:
     #  {oldval1: newval1 , oldval2: newval1,...}
 
-def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",value=True,
+def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
@@ -317,11 +284,7 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    if value:
-        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.3, -1: -0.15})
-    else:
-        matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0, -1: -0.15})
-
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0, -1:-0.15})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
@@ -468,29 +431,6 @@ def delete_column(df, colName):
 
 
 def df_stats(dataframe):
-    matrix_df = dataframe.copy()
-    counts=matrix_df['Data'].value_counts()
-    print(counts)
-    matrix = sps.coo_matrix((matrix_df[columns[3]].values,
-                             (matrix_df[columns[0]].values, matrix_df[columns[1]].values)
-                             ))
-    matrix=matrix.tocsc()
-    n_description=  np.ediff1d(matrix.indptr)
-    n_description = np.sort(n_description)
-
-    import matplotlib.pyplot as pyplot
-
-
-    pyplot.plot(n_description, 'ro')
-    pyplot.ylabel('Num features ')
-    pyplot.xlabel('Sorted items')
-    pyplot.show()
-
-    URM_mask_interaction = dataframe.copy()
-    URM_mask_interaction[columns[3]] = URM_mask_interaction[columns[3]].replace({1: 0, 0.04: 1})
-
-    URM_mask_interaction=URM_mask_interaction.loc[~(URM_mask_description == 0).all(axis=1)]
-    n_interaction = URM_mask_interaction.shape
     userID_unique = dataframe["UserID"].unique()
     itemID_unique = dataframe["ItemID"].unique()
 
@@ -505,7 +445,6 @@ def df_stats(dataframe):
     print("Average interactions per item {:.2f}\n".format(n_interactions / n_items))
 
     print("Sparsity {:.2f} %".format((1 - float(n_interactions) / (n_items * n_users)) * 100))
-    print("Number of one in table " + str(n_interaction) + "  number of description saw " + str(n_description))
     print("--------------------")
 
     return n_items
@@ -777,6 +716,73 @@ def get_URM_ICM_Type_Extended(matrix_path_URM, matrix_path_ICM_type='../data_ICM
     ICM_all_type.data = np.ones_like(ICM_all_type.data)
 
     return URM_all, ICM_all_type
+
+
+def combine(ICM: sps.csr_matrix, URM: sps.csr_matrix):
+    return sps.hstack((URM.T, ICM), format='csr')
+
+
+def binarize(x):
+    if x != 0:
+        return 1
+    return x
+
+
+def binarize_ICM(ICM: sps.csr_matrix):
+    vbinarize = np.vectorize(binarize)
+
+    ICM.data = vbinarize(ICM.data)
+
+
+def linear_scaling_confidence(URM_train, alpha):
+    C = check_matrix(URM_train, format="csr", dtype=np.float32)
+    C.data = 1.0 + alpha * C.data
+
+    return C
+
+
+def load_ICM_rewatches(file_path='../data/rewatches.csv'):
+    import pandas as pd
+    import scipy.sparse as sps
+
+    metadata = pd.read_csv(file_path)
+
+    item_icm_list = metadata['ItemID'].tolist()
+    feature_list = metadata['UserID'].tolist()
+    weight_list = metadata['Rewatch'].tolist()
+
+    return sps.coo_matrix((weight_list, (item_icm_list, feature_list)))
+
+
+def load_ICM_displayed(file_path='../data/displayed.csv', weight_list_col='Displayed'):
+    import pandas as pd
+    import scipy.sparse as sps
+
+    metadata = pd.read_csv(file_path)
+
+    item_icm_list = metadata['ItemID'].tolist()
+    feature_list = metadata['UserID'].tolist()
+    weight_list = metadata[weight_list_col].tolist()
+
+    return sps.coo_matrix((weight_list, (item_icm_list, feature_list)))
+
+
+'''
+Works with both data_ICM_type and data_ICM_length
+'''
+
+
+def load_ICM(file_path, item_icm_col="item_id", feature_icm_col="feature_id", weight_icm_col="data"):
+    import pandas as pd
+    import scipy.sparse as sps
+
+    metadata = pd.read_csv(file_path)
+
+    item_icm_list = metadata[item_icm_col].tolist()
+    feature_list = metadata[feature_icm_col].tolist()
+    weight_list = metadata[weight_icm_col].tolist()
+
+    return sps.coo_matrix((weight_list, (item_icm_list, feature_list)))
 
 
 #################
