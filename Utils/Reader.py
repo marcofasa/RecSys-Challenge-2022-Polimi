@@ -193,7 +193,8 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
 
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False, clean=False):
+                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False,
+                   clean=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -219,7 +220,9 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04})
+    # TODO rimmetti come era prima il replace
+    # matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04})
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
@@ -257,8 +260,10 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # valsToPlace: dictionary of vals of kind:
     #  {oldval1: newval1 , oldval2: newval1,...}
 
+
 def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
-                   stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False):
+                            stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None,
+                            saving=False):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -266,7 +271,7 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
                             header=None,
                             dtype={0: int, 1: int, 2: float},
                             engine='python')
-    matrix_df.columns = ["UserID","ItemID","Data"]
+    matrix_df.columns = ["UserID", "ItemID", "Data"]
     mapped_id, original_id = pd.factorize(matrix_df["UserID"].unique())
 
     print("Unique UserID in the URM are {}".format(len(original_id)))
@@ -284,7 +289,7 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
     # 1--> real interaction
 
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
-    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0, -1:-0.15})
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0, -1: -0.15})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 
@@ -319,7 +324,6 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
     # colsToChange: The column where replace values
     # valsToPlace: dictionary of vals of kind:
     #  {oldval1: newval1 , oldval2: newval1,...}
-
 
 
 def factorization(URM_all_dataframe, ICM_dataframe, enabled_userid=False):
@@ -369,6 +373,8 @@ def factorization(URM_all_dataframe, ICM_dataframe, enabled_userid=False):
 
 def df_preprocess(df, saving=True, mode=0):
     list_to_convert = []
+    list_to_check=[]
+    df.sort_values(by=['Data'])
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Passing through all dataset to gather infos..."):
         # print(index)
         # print(len(df))
@@ -380,6 +386,7 @@ def df_preprocess(df, saving=True, mode=0):
 
         userid = row[columns[0]]
         item = row[columns[1]]
+        # At this point you have userid,item and a displaylist with all items displayed in background
 
         # 1-> Displayed (counts times a given Item has been displayed(in impressions list) to the user
         # 2-> Extended (adds an interaction (-1) if a User has an item in impression list
@@ -399,6 +406,24 @@ def df_preprocess(df, saving=True, mode=0):
         elif mode == 5:  # Rewatch (total) for each user
             if row[columns[3]] == 1:
                 list_to_convert.append(item)
+        elif mode == 6:
+            #with set you have no duplicates
+            for i in displayList:
+                list_to_convert.append([userid, i, 0.01])
+                list_to_check.append([userid, i, 0.01])
+            if row[columns[3]] == 1:
+                if [userid, item, 0.2] in list_to_check:
+                    # list_to_convert.remove([userid, item, 0.2])
+                    list_to_convert.append([userid, item, 0.8])
+                elif [userid, item, 0.01] in list_to_check:
+                    # list_to_convert.remove([userid, item, 0.01])
+                    list_to_convert.append([userid, item, 0.5])
+                else:
+                    list_to_convert.append([userid, item, 1])
+            elif row[columns[3]] == 0:
+                list_to_convert.append([userid, item, 0.2])
+                list_to_check.append([userid, item, 0.2])
+
 
     if mode < 3:
         df1 = pd.DataFrame(list_to_convert, columns=columns)
@@ -421,6 +446,12 @@ def df_preprocess(df, saving=True, mode=0):
         cols = ["ItemID", "Rewatch"]
         c = Counter(list_to_convert).most_common()
         df = pd.DataFrame(c, columns=cols)
+    elif mode == 6:
+        cols = ["UserID", "ItemID", "Data"]
+        #list_to_convert = list(dict.fromkeys(list_to_convert))  # removing duplicates
+
+        del df
+        df = pd.DataFrame(list_to_convert, columns=cols)
 
     if saving:
         save(df, "out_" + str(mode))
@@ -789,4 +820,4 @@ def load_ICM(file_path, item_icm_col="item_id", feature_icm_col="feature_id", we
 
 
 if __name__ == '__main__':
-    read_train_csr(preprocess=3)
+    read_train_csr(preprocess=6,saving=True)
