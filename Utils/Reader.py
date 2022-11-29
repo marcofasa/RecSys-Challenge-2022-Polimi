@@ -93,7 +93,6 @@ def only_read_train_csr(matrix_path="../data/interactions_and_impressions.csv", 
         return matrix_df
 
 
-# TODO check this method
 def df_col_replace(df, col_to_change, values_to_change):
     df[col_to_change] = df[col_to_change].replace(values_to_change)
     return
@@ -190,19 +189,31 @@ def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../da
     stacked_ICM = sps.csr_matrix(stacked_URM.T)
 
     return stacked_URM, stacked_ICM
+'''
+- vals_to_not_keep: Array of row to delete comparing value in Data
 
-def load_URM(file_path="../data/URM_new.csv"):
+'''
+
+def load_URM(file_path="../data/URM_new.csv", values_to_replace=None, vals_to_not_keep=None, matrix_format="csr"):
     import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 
     data = pd.read_csv(file_path)
 
     import scipy.sparse as sps
-
+    if values_to_replace is not None:
+        data['Data'] = data['Data'].replace(values_to_replace)
+    if vals_to_not_keep is not None:
+        for val in vals_to_not_keep:
+            data = data[data['Data'] != val]
     user_list = data['UserID'].tolist()
     item_list = data['ItemID'].tolist()
     rating_list = data['Data'].tolist()
+    if matrix_format == "csr":
+        return sps.coo_matrix((rating_list, (user_list, item_list))).tocsr()
+    else:
+        return data
 
-    return sps.coo_matrix((rating_list, (user_list, item_list))).tocsr()
+
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False,
                    clean=False):
@@ -274,7 +285,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
 def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                             stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None,
-                            saving=False):
+                            saving=False, replace=None):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -283,6 +294,8 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
                             dtype={0: int, 1: int, 2: float},
                             engine='python')
     matrix_df.columns = ["UserID", "ItemID", "Data"]
+    if replace is not None:
+        df_col_replace(matrix_df, col_to_change="Data", values_to_change=replace)
     mapped_id, original_id = pd.factorize(matrix_df["UserID"].unique())
 
     print("Unique UserID in the URM are {}".format(len(original_id)))
@@ -387,7 +400,12 @@ def df_preprocess(df, saving=True, mode=0):
     list_to_check001 = set()
     list_to_check02 = set()
     list_to_check = []
-    df.sort_values(by=['Data'])
+    list_to_convert001 = []
+    cont = 0
+    list_to_convert02 = []
+
+    df = df.sort_values(by=['UserID', 'ItemID', 'Data'])
+    userid = 0
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Passing through all dataset to gather infos..."):
         # print(index)
         # print(len(df))
@@ -396,8 +414,15 @@ def df_preprocess(df, saving=True, mode=0):
         if type(row[columns[2]]) == str:
             displayList = row[columns[2]].split(",")
             displayList = [eval(i) for i in displayList]
+        if mode < 10 and userid != row[columns[0]]:
+            userid = row[columns[0]]
+            list_to_convert = list_to_convert + list_to_convert001
+            list_to_convert = list_to_convert + list_to_convert02
+            list_to_convert001.clear()
+            list_to_convert02.clear()
+        else:
+            userid = row[columns[0]]
 
-        userid = row[columns[0]]
         item = row[columns[1]]
         # At this point you have userid,item and a displaylist with all items displayed in background
 
@@ -422,6 +447,28 @@ def df_preprocess(df, saving=True, mode=0):
         elif mode == 6:
             # with set you have no duplicates
             for i in displayList:
+                list_to_convert.append([userid, i, 0.01])
+                list_to_check001.add((userid, i))
+            if row[columns[3]] == 1:
+                if (userid, item) in list_to_check02:
+                    # list_to_convert.remove([userid, item, 0.2])
+                    list_to_convert.append([userid, item, 0.8])
+                    list_to_check02.remove((userid, item))
+                    list_to_convert.remove([userid, item, 0.2])
+                elif (userid, item) in list_to_check001:
+                    # list_to_convert.remove([userid, item, 0.01])
+                    list_to_convert.append([userid, item, 0.5])
+                    list_to_check001.remove((userid, item))
+                    list_to_convert.remove([userid, item, 0.01])
+                else:
+                    list_to_convert.append([userid, item, 1])
+            elif row[columns[3]] == 0:
+
+                list_to_convert.append([userid, item, 0.2])
+                list_to_check02.add((userid, item))
+        elif mode == 7:
+            # with duplicates--> Full exposition
+            for i in displayList:
                 if (userid, i) not in list_to_check001:
                     list_to_convert.append([userid, i, 0.01])
                     list_to_check001.add((userid, i))
@@ -429,33 +476,55 @@ def df_preprocess(df, saving=True, mode=0):
                 if (userid, item) in list_to_check02:
                     # list_to_convert.remove([userid, item, 0.2])
                     list_to_convert.append([userid, item, 0.8])
+                    list_to_check02.remove((userid, item))
+                    list_to_convert.remove([userid, item, 0.2])
                 elif (userid, item) in list_to_check001:
                     # list_to_convert.remove([userid, item, 0.01])
                     list_to_convert.append([userid, item, 0.5])
+                    list_to_check001.remove((userid, item))
+                    list_to_convert.remove([userid, item, 0.01])
                 else:
                     list_to_convert.append([userid, item, 1])
             elif row[columns[3]] == 0:
                 if (userid, item) not in list_to_check02:
                     list_to_convert.append([userid, item, 0.2])
                     list_to_check02.add((userid, item))
-        elif mode == 7:
-            # with duplicates--> Full exposition
-            for i in displayList:
-                list_to_convert.append([userid, i, 0.01])
-                list_to_check.append([userid, i, 0.01])
+        elif mode == 8:
             if row[columns[3]] == 1:
-                if [userid, item, 0.2] in list_to_check:
+                if [userid, item, 0.2] in list_to_convert02:
                     # list_to_convert.remove([userid, item, 0.2])
                     list_to_convert.append([userid, item, 0.8])
-                elif [userid, item, 0.01] in list_to_check:
+                    list_to_convert.append([userid, item, 1])
+                    list_to_convert02.remove([userid, item, 0.2])
+
+                elif [userid, item, 0.01] in list_to_convert001:
                     # list_to_convert.remove([userid, item, 0.01])
                     list_to_convert.append([userid, item, 0.5])
+                    list_to_convert.append([userid, item, 1])
+                    list_to_convert001.remove([userid, item, 0.01])
                 else:
                     list_to_convert.append([userid, item, 1])
             elif row[columns[3]] == 0:
-                list_to_convert.append([userid, item, 0.2])
-                list_to_check.append([userid, item, 0.2])
+                list_to_convert02.append([userid, item, 0.2])
+            for i in displayList:
+                if i != item:
+                    list_to_convert001.append([userid, i, 0.01])
+        elif mode == 9:
+            if row[columns[3]] == 1:
+                list_to_convert.append([userid, item, 1])
+            elif row[columns[3]] == 0:
+                list_to_convert02.append([userid, item, 0.2])
+            for i in displayList:
+                if i != item:
+                    list_to_convert001.append([userid, i, 0.01])
+        elif mode == 10:
+            cont = cont + 1
+            for i in displayList:
+                if i != item:
+                    list_to_convert001.append([userid, i, None, 0.01])
 
+        if cont == 10:
+            break
     if mode < 3:
         df1 = pd.DataFrame(list_to_convert, columns=columns)
         df = df.append(df1)
@@ -477,11 +546,17 @@ def df_preprocess(df, saving=True, mode=0):
         cols = ["ItemID", "Rewatch"]
         c = Counter(list_to_convert).most_common()
         df = pd.DataFrame(c, columns=cols)
-    elif mode == 6 or mode == 7:
+    elif mode == 6 | mode == 7 | mode == 8 | mode == 9:
         cols = ["UserID", "ItemID", "Data"]
         # list_to_convert = list(dict.fromkeys(list_to_convert))  # removing duplicates
         del df
         df = pd.DataFrame(list_to_convert, columns=cols)
+    elif mode == 10:
+        df1 = pd.DataFrame(list_to_convert001, columns=columns)
+        df = df.append(df1)
+        df.columns = columns
+        df = df.drop(["Interaction"], axis=1)
+        df = df.sort_values(by=['UserID', 'ItemID', 'Data'])
 
     if saving:
         save(df, "out_" + str(mode))
@@ -631,8 +706,8 @@ def save(data, name, relativePath="../output/", fullPath=None):
         data.to_csv(fullPath, index=False)
 
 
-def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data_ICM_type.csv',
-                     matrix_path_ICM_length='data/data_ICM_length.csv'):
+def get_URM_ICM_Type(matrix_path_URM, matrix_path_ICM_type='../data/data_ICM_type.csv',
+                     matrix_path_ICM_length='../data/data_ICM_length.csv'):
     columns = ["UserID", "ItemID", "Interaction", "Data"]
     n_items = 0
     URM = pd.read_csv(filepath_or_buffer=matrix_path_URM,
@@ -850,4 +925,4 @@ def load_ICM(file_path, item_icm_col="item_id", feature_icm_col="feature_id", we
 
 
 if __name__ == '__main__':
-    read_train_csr(preprocess=6, saving=True)
+    read_train_csr(preprocess=10, saving=True)

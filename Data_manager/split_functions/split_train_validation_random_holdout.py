@@ -147,7 +147,7 @@ def split_train_in_two_percentage_global_sample(URM_all, train_percentage=0.1):
     return URM_train, URM_validation
 
 
-def split_train_in_two_percentage_global_sample_double(URM_all, URM_all2, train_percentage=0.1):
+def split_train_in_two_percentage_global_sample_double(URM_all,URM_all2, train_percentage=0.1):
     """
     The function splits an URM in two matrices selecting the number of interactions globally
     :param URM_all:
@@ -164,21 +164,17 @@ def split_train_in_two_percentage_global_sample_double(URM_all, URM_all2, train_
     num_users, num_items = URM_all.shape
     num_users2, num_items2 = URM_all2.shape
 
+    assert num_users==num_users2 and num_items== num_items2, "Inconsistent URM"
+
     URM_train_builder = IncrementalSparseMatrix(n_rows=num_users, n_cols=num_items, auto_create_col_mapper=False,
+                                                auto_create_row_mapper=False)
+    URM_train_builder2 = IncrementalSparseMatrix(n_rows=num_users, n_cols=num_items, auto_create_col_mapper=False,
                                                 auto_create_row_mapper=False)
     URM_validation_builder = IncrementalSparseMatrix(n_rows=num_users, n_cols=num_items, auto_create_col_mapper=False,
                                                      auto_create_row_mapper=False)
 
-    URM_train_builder2 = IncrementalSparseMatrix(n_rows=num_users2, n_cols=num_items2, auto_create_col_mapper=False,
-                                                 auto_create_row_mapper=False)
-    URM_validation_builder2 = IncrementalSparseMatrix(n_rows=num_users2, n_cols=num_items2, auto_create_col_mapper=False,
-                                                      auto_create_row_mapper=False)
-
     URM_train = sps.coo_matrix(URM_all)
-    print(URM_train)
     URM_train2 = sps.coo_matrix(URM_all2)
-    print(URM_train2)
-
 
     indices_for_sampling = np.arange(0, URM_all.nnz, dtype=np.int)
     np.random.shuffle(indices_for_sampling)
@@ -191,30 +187,21 @@ def split_train_in_two_percentage_global_sample_double(URM_all, URM_all2, train_
     URM_train_builder.add_data_lists(URM_train.row[indices_for_train],
                                      URM_train.col[indices_for_train],
                                      URM_train.data[indices_for_train])
+    URM_train_builder2.add_data_lists(URM_train2.row[indices_for_train],
+                                     URM_train2.col[indices_for_train],
+                                     URM_train2.data[indices_for_train])
 
     URM_validation_builder.add_data_lists(URM_train.row[indices_for_validation],
                                           URM_train.col[indices_for_validation],
                                           URM_train.data[indices_for_validation])
 
-    URM_train_builder2.add_data_lists(URM_train2.row[indices_for_train],
-                                      URM_train2.col[indices_for_train],
-                                      URM_train2.data[indices_for_train])
-
-    URM_validation_builder2.add_data_lists(URM_train2.row[indices_for_validation],
-                                           URM_train2.col[indices_for_validation],
-                                           URM_train2.data[indices_for_validation])
-
     URM_train = URM_train_builder.get_SparseMatrix()
+    URM_train2 = URM_train_builder2.get_SparseMatrix()
     URM_validation = URM_validation_builder.get_SparseMatrix()
 
     URM_train = sps.csr_matrix(URM_train)
-    URM_validation = sps.csr_matrix(URM_validation)
-
-    URM_train2 = URM_train_builder2.get_SparseMatrix()
-    URM_validation2 = URM_validation_builder2.get_SparseMatrix()
-
     URM_train2 = sps.csr_matrix(URM_train2)
-    URM_validation2 = sps.csr_matrix(URM_validation2)
+    URM_validation = sps.csr_matrix(URM_validation)
 
     user_no_item_train = np.sum(np.ediff1d(URM_train.indptr) == 0)
     user_no_item_validation = np.sum(np.ediff1d(URM_validation.indptr) == 0)
@@ -228,4 +215,5 @@ def split_train_in_two_percentage_global_sample_double(URM_all, URM_all2, train_
                                                                                 user_no_item_validation / num_users * 100,
                                                                                 num_users))
 
-    return URM_train, URM_validation, URM_train2, URM_validation2
+    return URM_train, URM_validation,URM_train2
+
