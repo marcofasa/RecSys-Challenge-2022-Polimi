@@ -928,4 +928,4 @@ def load_ICM(file_path, item_icm_col="item_id", feature_icm_col="feature_id", we
 
 
 if __name__ == '__main__':
-    read_train_csr(preprocess=10, saving=True)
+    read_train_csr(preprocess=8, saving=True)
