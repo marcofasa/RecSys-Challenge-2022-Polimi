@@ -41,3 +41,4 @@ NameError: name 'get_result_string_df' is not defined
 
 SearchBayesianSkopt: Search interrupted due to ValueError. The evaluated configurations may have had all the same value.
 SearchBayesianSkopt: Extending previous number of cases from 15 to 25.
+SearchBayesianSkopt: Extending previous number of cases from 15 to 40.

@@ -216,7 +216,7 @@ def load_URM(file_path="../data/URM_new.csv", values_to_replace=None, vals_to_no
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False,
-                   clean=False):
+                   clean=False,values_to_replace=None):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -225,6 +225,10 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
                             dtype={0: int, 1: int, 2: str, 3: int},
                             engine='python')
     matrix_df.columns = columns
+    #basic flipping
+    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
+    if values_to_replace is not None:
+        matrix_df[columns[3]] = matrix_df[columns[3]].replace(values_to_replace)
     mapped_id, original_id = pd.factorize(matrix_df["UserID"].unique())
 
     print("Unique UserID in the URM are {}".format(len(original_id)))
@@ -244,7 +248,6 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # df_col_normalize(matrix_df,columns[3],{0: 1, 1: 0})
     # TODO rimmetti come era prima il replace
     # matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0.04})
-    matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
     if switch:
         df_col_normalize(matrix_df, colToChange=column, valsToPlace=dictionary)
 

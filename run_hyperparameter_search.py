@@ -48,15 +48,15 @@ def read_data_split_and_search():
     collaborative_algorithm_list = [
         #Random,
         #TopPop,
-        P3alphaRecommender,
+        #P3alphaRecommender,
         RP3betaRecommender,
-        ItemKNNCFRecommender,
-        UserKNNCFRecommender,
+        #ItemKNNCFRecommender,
+        #UserKNNCFRecommender,
         MatrixFactorization_BPR_Cython,
         MatrixFactorization_FunkSVD_Cython,
         PureSVDRecommender,
         IALSRecommender,
-        NMFRecommender,
+        #NMFRecommender,
         SLIM_BPR_Cython,
         SLIMElasticNetRecommender,
         #ItemUserHybridKNNRecommender,
@@ -70,15 +70,14 @@ def read_data_split_and_search():
     dirname = os.path.dirname(__file__)
     matrix_extended = os.path.join(dirname, "data/extended.csv")
 
-    matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
+    matrix_path = os.path.join(dirname, "data/interactions_and_impressions_v2.csv")
     ICM_path = os.path.join(dirname, "data/data_ICM_type.csv")
     ICM_path_length = os.path.join(dirname, "data/data_ICM_length.csv")
 
+    replace = {0.01: -1, 0.5: 0, 0.8: 0, 0.2: 0}
+    URM_train_normal = Reader.read_train_csr_extended(matrix_path=matrix_path, stats=False, replace=replace)
 
-
-    URM_train = Reader.read_train_csr(matrix_path=matrix_path)
-
-    URM_train_last, URM_test = split_train_in_two_percentage_global_sample(URM_train, 0.7)
+    URM_train_last, URM_test = split_train_in_two_percentage_global_sample(URM_train_normal, 0.7)
     URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train_last, 0.7)
 
 
