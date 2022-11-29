@@ -12,6 +12,7 @@ Data_manager_offline_datasets/**
 
 **/.pytest_cache/*
 
+data/interactions_and_impressions_v2.csv
 data/interactions_and_impressions_v3.csv
 data/interactions_and_impressions_v4.csv
 # Ignore cython compiled files
