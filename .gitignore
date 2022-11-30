@@ -11,7 +11,7 @@ Data_manager_split_datasets/**
 Data_manager_offline_datasets/**
 
 **/.pytest_cache/*
-
+result_experiments/
 data/interactions_and_impressions_v2.csv
 data/interactions_and_impressions_v3.csv
 data/interactions_and_impressions_v4.csv
