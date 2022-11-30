@@ -206,12 +206,17 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     #  {oldval1: newval1 , oldval2: newval1,...}
 
 
-def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", ICM_path="../data_ICM_type.csv", ICM_cols=None, URM_cols=None,ICM_dtype={0: int, 1: int, 2: int}):
+def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", ICM_path="../data_ICM_type.csv", ICM_cols=None, URM_cols=None,
+                           ICM_dtype=None, URM_dtye=None):
+    if URM_dtye is None:
+        URM_dtye = {0: int, 1: int, 2: str, 3: int}
+    if ICM_dtype is None:
+        ICM_dtype = {0: int, 1: int, 2: int}
     URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
                                     sep=",",
                                     skiprows=1,
                                     header=None,
-                                    dtype={0: int, 1: int, 2: str, 3: int},
+                                    dtype=URM_dtye,
                                     engine='python')
 
     if URM_cols is not None:
@@ -273,13 +278,17 @@ def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", 
 
 
 def load_URM_and_ICM_users(URM_path="../data/interactions_and_impressions.csv", ICM_path="../data/rewatches.csv",
-                           ICM_cols=None, URM_cols=None):
+                           ICM_cols=None, URM_cols=None, ICM_dtype=None, URM_dtye=None):
+    if URM_dtye is None:
+        URM_dtye = {0: int, 1: int, 2: str, 3: int}
+    if ICM_dtype is None:
+        ICM_dtype = {0: int, 1: int, 2: int}
     import scipy.sparse as sps
     URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
                                     sep=",",
                                     skiprows=1,
                                     header=None,
-                                    dtype={0: int, 1: int, 2: str, 3: int},
+                                    dtype=URM_dtye,
                                     engine='python')
 
     if URM_cols is not None:
@@ -292,7 +301,7 @@ def load_URM_and_ICM_users(URM_path="../data/interactions_and_impressions.csv", 
                                 sep=",",
                                 skiprows=1,
                                 header=None,
-                                dtype={0: int, 1: int, 2: int},
+                                dtype=ICM_dtype,
                                 engine='python')
 
     if ICM_cols is not None:
