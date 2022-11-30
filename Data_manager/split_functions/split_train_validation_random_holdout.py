@@ -177,19 +177,23 @@ def split_train_in_two_percentage_global_sample_double(URM_all,URM_all2, train_p
     URM_train2 = sps.coo_matrix(URM_all2)
 
     indices_for_sampling = np.arange(0, URM_all.nnz, dtype=np.int)
+    indices_for_sampling2 = np.arange(0, URM_all2.nnz, dtype=np.int)
     np.random.shuffle(indices_for_sampling)
+    np.random.shuffle(indices_for_sampling2)
 
     n_train_interactions = round(URM_all.nnz * train_percentage)
+    n_train_interactions2 = round(URM_all2.nnz * train_percentage)
 
     indices_for_train = indices_for_sampling[indices_for_sampling[0:n_train_interactions]]
+    indices_for_train2 = indices_for_sampling2[indices_for_sampling2[0:n_train_interactions2]]
     indices_for_validation = indices_for_sampling[indices_for_sampling[n_train_interactions:]]
 
     URM_train_builder.add_data_lists(URM_train.row[indices_for_train],
                                      URM_train.col[indices_for_train],
                                      URM_train.data[indices_for_train])
-    URM_train_builder2.add_data_lists(URM_train2.row[indices_for_train],
-                                     URM_train2.col[indices_for_train],
-                                     URM_train2.data[indices_for_train])
+    URM_train_builder2.add_data_lists(URM_train2.row[indices_for_train2],
+                                     URM_train2.col[indices_for_train2],
+                                     URM_train2.data[indices_for_train2])
 
     URM_validation_builder.add_data_lists(URM_train.row[indices_for_validation],
                                           URM_train.col[indices_for_validation],

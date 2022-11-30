@@ -98,101 +98,20 @@ def df_col_replace(df, col_to_change, values_to_change):
     return
 
 
-'''
-Structure of the ICM -> UserID,ItemID,FeatureID
-ASSERT IT HAS 3 COLS
-'''
-
-
-def stacker(URM_path="../data/interactions_and_impressions.csv", ICM_path='../data/rewatches.csv',
-            ICM_cols_to_drop=None, ICM_values_to_change=None):
-    # CON MAPPING
-    URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
-                                    sep=",",
-                                    skiprows=1,
-                                    header=None,
-                                    dtype={0: int, 1: int, 2: str, 3: int},
-                                    engine='python')
-
-    URM_all_dataframe.columns = ["UserID", "ItemID", "NULL", "Interaction"]
-    URM_all_dataframe["Interaction"] = URM_all_dataframe["Interaction"].replace({0: 1, 1: 0})
-    ICM_dataframe = pd.read_csv(filepath_or_buffer=ICM_path,
-                                sep=",",
-                                skiprows=1,
-                                header=None,
-                                dtype={0: int, 1: int, 2: int},
-                                engine='python')
-
-    if (ICM_cols_to_drop != None):
-        for col in ICM_cols_to_drop:
-            ICM_dataframe = ICM_dataframe.drop(col, axis=1)
-    if (ICM_values_to_change != None):
-        df_col_replace(ICM_dataframe, 2, ICM_values_to_change)
-
-    ICM_dataframe.columns = ["UserID", "ItemID", "FeatureID"]
-
-    # Some nan values exist, remove them
-    ICM_dataframe = ICM_dataframe[ICM_dataframe["FeatureID"].notna()]
-
-    n_features = len(ICM_dataframe["FeatureID"].unique())
-
-    print("Number of tags\t {}, Number of item-tag tuples {}".format(n_features, len(ICM_dataframe)))
-    ## Build the sparse URM and ICM matrices
-
-    mapped_id, original_id = pd.factorize(URM_all_dataframe["UserID"].unique())
-
-    print("Unique UserID in the URM are {}".format(len(original_id)))
-
-    all_item_indices = pd.concat([URM_all_dataframe["UserID"], ICM_dataframe["UserID"]], ignore_index=True)
-    mapped_id, original_id = pd.factorize(all_item_indices.unique())
-
-    print("Unique UserID in the URM and ICM are {}".format(len(original_id)))
-
-    user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
-    mapped_id, original_id = pd.factorize(URM_all_dataframe["ItemID"].unique())
-
-    print("Unique ItemID in the URM are {}".format(len(original_id)))
-
-    all_item_indices = pd.concat([URM_all_dataframe["ItemID"], ICM_dataframe["ItemID"]], ignore_index=True)
-    mapped_id, original_id = pd.factorize(all_item_indices.unique())
-
-    print("Unique ItemID in the URM and ICM are {}".format(len(original_id)))
-
-    item_original_ID_to_index = pd.Series(mapped_id, index=original_id)
-    mapped_id, original_id = pd.factorize(ICM_dataframe["FeatureID"].unique())
-    feature_original_ID_to_index = pd.Series(mapped_id, index=original_id)
-
-    print("Unique FeatureID in the URM are {}".format(len(feature_original_ID_to_index)))
-
-    URM_all_dataframe["UserID"] = URM_all_dataframe["UserID"].map(user_original_ID_to_index)
-    URM_all_dataframe["ItemID"] = URM_all_dataframe["ItemID"].map(item_original_ID_to_index)
-    ICM_dataframe["UserID"] = ICM_dataframe["UserID"].map(user_original_ID_to_index)
-    ICM_dataframe["ItemID"] = ICM_dataframe["ItemID"].map(item_original_ID_to_index)
-    ICM_dataframe["FeatureID"] = ICM_dataframe["FeatureID"].map(feature_original_ID_to_index)
-
-    n_users = len(user_original_ID_to_index)
-    n_items = len(item_original_ID_to_index)
-    n_features = len(feature_original_ID_to_index)
-    URM_all = sps.csr_matrix((URM_all_dataframe["Interaction"].values,
-                              (URM_all_dataframe["UserID"].values, URM_all_dataframe["ItemID"].values)),
-                             shape=(n_users, n_items))  # always support a desired shape
-
-    ICM_all = sps.csr_matrix((np.ones(len(ICM_dataframe["ItemID"].values)),
-                              (ICM_dataframe["ItemID"].values, ICM_dataframe["FeatureID"].values)),
-                             shape=(n_items, n_features))
-
-    ICM_all.data = np.ones_like(ICM_all.data)  # transfor array with all 1s if xisting val
-
-    stacked_URM = sps.vstack([URM_all, ICM_all.T])
+def stacker(URM_train,ICM_all):
+    stacked_URM = sps.vstack([URM_train, ICM_all.T])
     stacked_URM = sps.csr_matrix(stacked_URM)
 
     stacked_ICM = sps.csr_matrix(stacked_URM.T)
 
     return stacked_URM, stacked_ICM
+
+
 '''
 - vals_to_not_keep: Array of row to delete comparing value in Data
 
 '''
+
 
 def load_URM(file_path="../data/URM_new.csv", values_to_replace=None, vals_to_not_keep=None, matrix_format="csr"):
     import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
@@ -200,11 +119,12 @@ def load_URM(file_path="../data/URM_new.csv", values_to_replace=None, vals_to_no
     data = pd.read_csv(file_path)
 
     import scipy.sparse as sps
-    if values_to_replace is not None:
-        data['Data'] = data['Data'].replace(values_to_replace)
     if vals_to_not_keep is not None:
         for val in vals_to_not_keep:
             data = data[data['Data'] != val]
+    if values_to_replace is not None:
+        data['Data'] = data['Data'].replace(values_to_replace)
+
     user_list = data['UserID'].tolist()
     item_list = data['ItemID'].tolist()
     rating_list = data['Data'].tolist()
@@ -216,7 +136,7 @@ def load_URM(file_path="../data/URM_new.csv", values_to_replace=None, vals_to_no
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False,
-                   clean=False,values_to_replace=None):
+                   clean=False, values_to_replace=None):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -225,7 +145,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
                             dtype={0: int, 1: int, 2: str, 3: int},
                             engine='python')
     matrix_df.columns = columns
-    #basic flipping
+    # basic flipping
     matrix_df[columns[3]] = matrix_df[columns[3]].replace({0: 1, 1: 0})
     if values_to_replace is not None:
         matrix_df[columns[3]] = matrix_df[columns[3]].replace(values_to_replace)
@@ -284,6 +204,146 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
     # colsToChange: The column where replace values
     # valsToPlace: dictionary of vals of kind:
     #  {oldval1: newval1 , oldval2: newval1,...}
+
+
+def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", ICM_path="../data_ICM_type.csv", ICM_cols=None, URM_cols=None,ICM_dtype={0: int, 1: int, 2: int}):
+    URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
+                                    sep=",",
+                                    skiprows=1,
+                                    header=None,
+                                    dtype={0: int, 1: int, 2: str, 3: int},
+                                    engine='python')
+
+    if URM_cols is not None:
+        URM_all_dataframe.columns = URM_cols
+    else:
+        URM_all_dataframe.columns = ["UserID", "ItemID", "others", "Interaction"]
+    URM_all_dataframe["Interaction"] = URM_all_dataframe["Interaction"].replace({0: 1, 1: 0})
+
+    ICM_dataframe = pd.read_csv(filepath_or_buffer=ICM_path,
+                                sep=",",
+                                skiprows=1,
+                                header=None,
+                                dtype=ICM_dtype,
+                                engine='python')
+    if ICM_cols is not None:
+        ICM_dataframe.columns = ICM_cols
+    else:
+        ICM_dataframe.columns = ["ItemID", "FeatureID", "Data"]
+    ICM_dataframe = ICM_dataframe[ICM_dataframe["FeatureID"].notna()]
+    n_features = len(ICM_dataframe["FeatureID"].unique())
+
+    print("Number of tags\t {}, Number of item-tag tuples {}".format(n_features, len(ICM_dataframe)))
+    mapped_id, original_id = pd.factorize(URM_all_dataframe["UserID"].unique())
+
+    print("Unique UserID in the URM are {}".format(len(original_id)))
+
+    print("Unique UserID in the URM and ICM are {}".format(len(original_id)))
+
+    user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+    mapped_id, original_id = pd.factorize(URM_all_dataframe["ItemID"].unique())
+
+    print("Unique ItemID in the URM are {}".format(len(original_id)))
+
+    all_item_indices = pd.concat([URM_all_dataframe["ItemID"], ICM_dataframe["ItemID"]], ignore_index=True)
+    mapped_id, original_id = pd.factorize(all_item_indices.unique())
+
+    print("Unique ItemID in the URM and ICM are {}".format(len(original_id)))
+
+    item_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+    mapped_id, original_id = pd.factorize(ICM_dataframe["FeatureID"].unique())
+    feature_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+
+    print("Unique FeatureID in the URM are {}".format(len(feature_original_ID_to_index)))
+    URM_all_dataframe["ItemID"] = URM_all_dataframe["ItemID"].map(item_original_ID_to_index)
+    ICM_dataframe["ItemID"] = ICM_dataframe["ItemID"].map(item_original_ID_to_index)
+    ICM_dataframe["FeatureID"] = ICM_dataframe["FeatureID"].map(feature_original_ID_to_index)
+    n_users = len(user_original_ID_to_index)
+    n_items = len(item_original_ID_to_index)
+    n_features = len(feature_original_ID_to_index)
+    URM_all = sps.csr_matrix((URM_all_dataframe["Interaction"].values,
+                              (URM_all_dataframe["UserID"].values, URM_all_dataframe["ItemID"].values)),
+                             shape=(n_users, n_items))  # always support a desired shape
+    ICM_all = sps.csr_matrix((np.ones(len(ICM_dataframe["ItemID"].values)),
+                              (ICM_dataframe["ItemID"].values, ICM_dataframe["FeatureID"].values)),
+                             shape=(n_items, n_features))
+
+    ICM_all.data = np.ones_like(ICM_all.data)
+    return URM_all,ICM_all
+
+
+def load_URM_and_ICM_users(URM_path="../data/interactions_and_impressions.csv", ICM_path="../data/rewatches.csv",
+                           ICM_cols=None, URM_cols=None):
+    import scipy.sparse as sps
+    URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
+                                    sep=",",
+                                    skiprows=1,
+                                    header=None,
+                                    dtype={0: int, 1: int, 2: str, 3: int},
+                                    engine='python')
+
+    if URM_cols is not None:
+        URM_all_dataframe.columns = URM_cols
+    else:
+        URM_all_dataframe.columns = ["UserID", "ItemID", "others", "Interaction"]
+        URM_all_dataframe["Interaction"] = URM_all_dataframe["Interaction"].replace({0: 1, 1: 0})
+
+    ICM_dataframe = pd.read_csv(filepath_or_buffer=ICM_path,
+                                sep=",",
+                                skiprows=1,
+                                header=None,
+                                dtype={0: int, 1: int, 2: int},
+                                engine='python')
+
+    if ICM_cols is not None:
+        ICM_dataframe.columns = ICM_cols
+    else:
+        ICM_dataframe.columns = ["UserID", "ItemID", "FeatureID"]
+    ICM_dataframe = ICM_dataframe[ICM_dataframe["FeatureID"].notna()]
+    n_features = len(ICM_dataframe["FeatureID"].unique())
+
+    print("Number of tags\t {}, Number of item-tag tuples {}".format(n_features, len(ICM_dataframe)))
+    mapped_id, original_id = pd.factorize(URM_all_dataframe["UserID"].unique())
+
+    print("Unique UserID in the URM are {}".format(len(original_id)))
+
+    all_item_indices = pd.concat([URM_all_dataframe["UserID"], ICM_dataframe["UserID"]], ignore_index=True)
+    mapped_id, original_id = pd.factorize(all_item_indices.unique())
+
+    print("Unique UserID in the URM and ICM are {}".format(len(original_id)))
+
+    user_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+    mapped_id, original_id = pd.factorize(URM_all_dataframe["ItemID"].unique())
+
+    print("Unique ItemID in the URM are {}".format(len(original_id)))
+
+    all_item_indices = pd.concat([URM_all_dataframe["ItemID"], ICM_dataframe["ItemID"]], ignore_index=True)
+    mapped_id, original_id = pd.factorize(all_item_indices.unique())
+
+    print("Unique ItemID in the URM and ICM are {}".format(len(original_id)))
+
+    item_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+    mapped_id, original_id = pd.factorize(ICM_dataframe["FeatureID"].unique())
+    feature_original_ID_to_index = pd.Series(mapped_id, index=original_id)
+
+    print("Unique FeatureID in the URM are {}".format(len(feature_original_ID_to_index)))
+    URM_all_dataframe["UserID"] = URM_all_dataframe["UserID"].map(user_original_ID_to_index)
+    URM_all_dataframe["ItemID"] = URM_all_dataframe["ItemID"].map(item_original_ID_to_index)
+    ICM_dataframe["UserID"] = ICM_dataframe["UserID"].map(user_original_ID_to_index)
+    ICM_dataframe["ItemID"] = ICM_dataframe["ItemID"].map(item_original_ID_to_index)
+    ICM_dataframe["FeatureID"] = ICM_dataframe["FeatureID"].map(feature_original_ID_to_index)
+    n_users = len(user_original_ID_to_index)
+    n_items = len(item_original_ID_to_index)
+    n_features = len(feature_original_ID_to_index)
+    URM_all = sps.csr_matrix((URM_all_dataframe["Interaction"].values,
+                              (URM_all_dataframe["UserID"].values, URM_all_dataframe["ItemID"].values)),
+                             shape=(n_users, n_items))  # always support a desired shape
+    ICM_all = sps.csr_matrix((np.ones(len(ICM_dataframe["ItemID"].values)),
+                              (ICM_dataframe["ItemID"].values, ICM_dataframe["FeatureID"].values)),
+                             shape=(n_items, n_features))
+
+    ICM_all.data = np.ones_like(ICM_all.data)
+    return URM_all,ICM_all
 
 
 def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
@@ -922,6 +982,43 @@ def load_ICM(file_path, item_icm_col="item_id", feature_icm_col="feature_id", we
     weight_list = metadata[weight_icm_col].tolist()
 
     return sps.coo_matrix((weight_list, (item_icm_list, feature_list)))
+
+
+def load_ICM_type(file_path="../data/data_ICM_type.csv", item_icm_col="item_id", feature_icm_col="feature_id",
+                  weight_icm_col="data"):
+    import pandas as pd
+    import scipy.sparse as sps
+
+    metadata = pd.read_csv(file_path)
+
+    item_icm_list = metadata[item_icm_col].tolist()
+    feature_list = metadata[feature_icm_col].tolist()
+    weight_list = metadata[weight_icm_col].tolist()
+    ICM_all = sps.csr_matrix((np.ones(len(item_icm_list)),
+                              (item_icm_list, feature_list)),
+                             )
+
+    ICM_all.data = np.ones_like(ICM_all.data)  # transfor array with all 1s if xisting val
+
+    return ICM_all
+
+
+def load_ICM_rewatches_total(file_path="../data/rewatches/rewatches_total.csv", item_icm_col="item_id",
+                             feature_icm_col="rewatches", weight_icm_col="data"):
+    import pandas as pd
+    import scipy.sparse as sps
+
+    metadata = pd.read_csv(file_path)
+
+    item_icm_list = metadata[item_icm_col].tolist()
+    feature_list = metadata[feature_icm_col].tolist()
+    ICM_all = sps.csr_matrix((np.ones(len(item_icm_list)),
+                              (item_icm_list, feature_list)),
+                             )
+
+    ICM_all.data = np.ones_like(ICM_all.data)  # transfor array with all 1s if xisting val
+
+    return ICM_all
 
 
 #################
