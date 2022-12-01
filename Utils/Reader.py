@@ -130,25 +130,58 @@ def load_URM(file_path="../data/URM_new.csv", values_to_replace=None, vals_to_no
         return data
 
 
-def split_train_validation_double(URM_path="../data/interactions_and_impressions.csv",URM_path2="../data/interactions_and_impressions_v4.csv"):
-    URM_all_dataframe = pd.read_csv(URM_path)
+def split_train_validation_double(URM_path="../data/interactions_and_impressions.csv",train_percentage = 0.8,
+                                  URM_path2="../data/interactions_and_impressions_v4.csv", vals_to_not_keep=None,
+                                  values_to_replace=None, URM_cols=None, URM2_cols=None, URM_dtye=None, URM2_dtype=None,
+                                  matrix_format="csr", ):
+    if URM_dtye is None:
+        URM_dtye = {0: int, 1: int, 2: str, 3: int}
+    if URM2_dtype is None:
+        URM2_dtype = {0: int, 1: int, 3: float}
 
-    URM_all_dataframe.columns = ["UserID", "ItemID", "others", "Data"]
-    URM_all_dataframe = URM_all_dataframe.drop("others", axis=1)
-    URM_all_dataframe["Data"] = URM_all_dataframe["Data"].replace({0: 1, 1: 0})
+    URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
+                                    sep=",",
+                                    skiprows=1,
+                                    header=None,
+                                    dtype=URM_dtye,
+                                    engine='python')
 
-    URM_all_dataframe2 = pd.read_csv(URM_path2)
-    URM_all_dataframe2.columns = ["UserID", "ItemID", "Data"]
+    if URM_cols is not None:
+        URM_all_dataframe.columns = URM2_cols
+    else:
+        URM_all_dataframe.columns = ["UserID", "ItemID", "others", "Data"]
+        URM_all_dataframe = URM_all_dataframe.drop("others", axis=1)
+        URM_all_dataframe["Data"] = URM_all_dataframe["Data"].replace({0: 1, 1: 0})
+
+    URM_all_dataframe2 = pd.read_csv(filepath_or_buffer=URM_path2,
+                                     sep=",",
+                                     skiprows=1,
+                                     header=None,
+                                     dtype=URM2_dtype,
+                                     engine='python')
     URM_all_dataframe2 = URM_all_dataframe2[URM_all_dataframe2['Data'] != 0.01]
+
+    if URM2_cols is not None:
+        URM_all_dataframe2.columns = URM2_cols
+    else:
+        URM_all_dataframe2.columns = ["UserID", "ItemID", "Data"]
 
     URM_all_dataframe2 = URM_all_dataframe2.sort_values(by=['UserID', 'ItemID', 'Data'])
     URM_all_dataframe = URM_all_dataframe.sort_values(by=['UserID', 'ItemID', 'Data'])
+
+    if vals_to_not_keep is not None:
+        for val in vals_to_not_keep:
+            URM_all_dataframe2 = URM_all_dataframe2[URM_all_dataframe2['Data'] != val]
+            URM_all_dataframe = URM_all_dataframe[URM_all_dataframe['Data'] != val]
+    if values_to_replace is not None:
+        URM_all_dataframe2['Data'] = URM_all_dataframe2['Data'].replace(values_to_replace)
+        URM_all_dataframe['Data'] = URM_all_dataframe['Data'].replace(values_to_replace)
 
     all_users_items = list(set(list(zip(URM_all_dataframe['UserID'], URM_all_dataframe['ItemID']))))
     np.random.shuffle(all_users_items)
 
     import random
-    train_percentage = 0.8
+
     user_for_training = random.sample(all_users_items, round(len(all_users_items) * train_percentage))
     user_for_validation = list(set(all_users_items) - set(user_for_training))
     user_for_training = pd.DataFrame(user_for_training, columns=["UserID", "ItemID"])
