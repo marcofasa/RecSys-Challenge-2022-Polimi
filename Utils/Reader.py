@@ -154,11 +154,8 @@ def split_train_validation_double(URM_path="../data/interactions_and_impressions
         URM_all_dataframe["Data"] = URM_all_dataframe["Data"].replace({0: 1, 1: 0})
 
     URM_all_dataframe2 = pd.read_csv(filepath_or_buffer=URM_path2,
-                                     sep=",",
-                                     skiprows=1,
-                                     header=None,
-                                     dtype=URM2_dtype,
-                                     engine='python')
+                                     dtype=URM2_dtype
+    )
     URM_all_dataframe2 = URM_all_dataframe2[URM_all_dataframe2['Data'] != 0.01]
 
     if URM2_cols is not None:
