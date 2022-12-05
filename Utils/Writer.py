@@ -33,8 +33,7 @@ class NameRecommender(Enum):
     USER_ITEM = "USER_ITEM"
     ItemKNNCBF = "ItemKNNCBF"
     RP3betaCBFRecommender = "RP3betaCBFRecommender"
-    FeatureCombinedImplicitALSRecommender="FeatureCombinedImplicitALSRecommender"
-
+    FeatureCombinedImplicitALSRecommender = "FeatureCombinedImplicitALSRecommender"
 
 
 class Writer(object):
@@ -86,12 +85,15 @@ class Writer(object):
             self.Recommender = ItemKNNCBFRecommender(URM_train=URM, ICM_train=stackedICM)
             self.Recommender.fit()
         if self.NameRecommender.name == "RP3betaCBFRecommender":
-            self.Recommender  = RP3betaCBFRecommender(
+            self.Recommender = RP3betaCBFRecommender(
                 URM_train=URM,
                 ICM_train=ICM,
                 verbose=False
             )
-            self.Recommender.fit()
+            self.Recommender.fit(topK=int(529.1628484087545),
+                                 alpha=0.45304737831676245,
+                                 beta=0.226647894170121,
+                                 implicit=False)
         if self.NameRecommender.name == "FeatureCombinedImplicitALSRecommender":
             self.Recommender = FeatureCombinedImplicitALSRecommender(
                 URM_train=URM,
@@ -110,7 +112,6 @@ class Writer(object):
                     'ICM': {"alpha": 50}
                 }
             )
-
 
     def makeSubmission(self):
         current_dir = os.path.abspath(os.path.dirname(__file__))
