@@ -130,7 +130,7 @@ def load_URM(file_path="../data/URM_new.csv", values_to_replace=None, vals_to_no
         return data
 
 
-def split_train_validation_double(URM_path="../data/interactions_and_impressions.csv",train_percentage = 0.8,
+def split_train_validation_double(URM_path="../data/interactions_and_impressions.csv", train_percentage=0.8,
                                   URM_path2="../data/interactions_and_impressions_v4.csv", vals_to_not_keep=None,
                                   values_to_replace=None, URM_cols=None, URM2_cols=None, URM_dtye=None, URM2_dtype=None,
                                   matrix_format="csr", ):
@@ -155,7 +155,7 @@ def split_train_validation_double(URM_path="../data/interactions_and_impressions
 
     URM_all_dataframe2 = pd.read_csv(filepath_or_buffer=URM_path2,
                                      dtype=URM2_dtype
-    )
+                                     )
     URM_all_dataframe2 = URM_all_dataframe2[URM_all_dataframe2['Data'] != 0.01]
 
     if URM2_cols is not None:
@@ -281,7 +281,8 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
 def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", ICM_path="../data_ICM_type.csv",
                            ICM_cols=None, URM_cols=None,
-                           ICM_dtype=None, URM_dtye=None, matrix_format="csr", ):
+                           ICM_dtype=None, URM_dtye=None, matrix_format="csr", ICM_vals_to_not_keep=None,
+                           URM_vals_to_not_keep=None, URM_values_to_replace=None, ICM_values_to_replace=None):
     if URM_dtye is None:
         URM_dtye = {0: int, 1: int, 2: str, 3: int}
     if ICM_dtype is None:
@@ -299,11 +300,26 @@ def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", 
         URM_all_dataframe.columns = ["UserID", "ItemID", "others", "Interaction"]
     URM_all_dataframe["Interaction"] = URM_all_dataframe["Interaction"].replace({0: 1, 1: 0})
 
+    if URM_vals_to_not_keep is not None:
+        for val in URM_vals_to_not_keep:
+            URM_all_dataframe = URM_all_dataframe[URM_all_dataframe['Interaction'] != val]
+    if URM_values_to_replace is not None:
+        URM_all_dataframe["Interaction"] = URM_all_dataframe["Interaction"].replace(URM_values_to_replace)
+    ICM_dataframe = pd.read_csv(filepath_or_buffer=ICM_path)
+
     ICM_dataframe = pd.read_csv(filepath_or_buffer=ICM_path)
     if ICM_cols is not None:
         ICM_dataframe.columns = ICM_cols
     else:
         ICM_dataframe.columns = ["ItemID", "FeatureID", "Data"]
+
+    if ICM_vals_to_not_keep is not None:
+        for val in ICM_vals_to_not_keep:
+            ICM_dataframe = ICM_dataframe[ICM_dataframe['FeatureID'] != val]
+
+    if ICM_values_to_replace is not None:
+        ICM_dataframe["FeatureID"] = ICM_dataframe["FeatureID"].replace(ICM_values_to_replace)
+
     ICM_dataframe = ICM_dataframe[ICM_dataframe["FeatureID"].notna()]
     n_features = len(ICM_dataframe["FeatureID"].unique())
 
@@ -350,7 +366,9 @@ def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", 
 
 
 def load_URM_and_ICM_users(URM_path="../data/interactions_and_impressions.csv", ICM_path="../data/rewatches.csv",
-                           ICM_cols=None, URM_cols=None, ICM_dtype=None, URM_dtye=None, matrix_format="csr",ICM_vals_to_not_keep=None,URM_vals_to_not_keep=None ,URM_values_to_replace=None,ICM_values_to_replace=None):
+                           ICM_cols=None, URM_cols=None, ICM_dtype=None, URM_dtye=None, matrix_format="csr",
+                           ICM_vals_to_not_keep=None, URM_vals_to_not_keep=None, URM_values_to_replace=None,
+                           ICM_values_to_replace=None):
     if URM_dtye is None:
         URM_dtye = {0: int, 1: int, 2: str, 3: int}
     if ICM_dtype is None:
@@ -369,12 +387,11 @@ def load_URM_and_ICM_users(URM_path="../data/interactions_and_impressions.csv", 
         URM_all_dataframe.columns = ["UserID", "ItemID", "others", "Interaction"]
         URM_all_dataframe["Interaction"] = URM_all_dataframe["Interaction"].replace({0: 1, 1: 0})
 
-
     if URM_vals_to_not_keep is not None:
         for val in URM_vals_to_not_keep:
             URM_all_dataframe = URM_all_dataframe[URM_all_dataframe['Interaction'] != val]
     if URM_values_to_replace is not None:
-        URM_all_dataframe["Interaction"] =  URM_all_dataframe["Interaction"].replace(URM_values_to_replace)
+        URM_all_dataframe["Interaction"] = URM_all_dataframe["Interaction"].replace(URM_values_to_replace)
     ICM_dataframe = pd.read_csv(filepath_or_buffer=ICM_path)
 
     if ICM_cols is not None:
