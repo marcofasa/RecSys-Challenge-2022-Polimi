@@ -133,30 +133,34 @@ def load_URM(file_path="../data/URM_new.csv", values_to_replace=None, vals_to_no
 def split_train_validation_double(URM_path="../data/interactions_and_impressions.csv", train_percentage=0.8,
                                   URM_path2="../data/interactions_and_impressions_v4.csv", vals_to_not_keep=None,
                                   values_to_replace=None, URM_cols=None, URM2_cols=None, URM_dtye=None, URM2_dtype=None,
-                                  matrix_format="csr", ):
+                                  matrix_format="csr", URM=None, URM2=None):
     if URM_dtye is None:
         URM_dtye = {0: int, 1: int, 2: str, 3: int}
     if URM2_dtype is None:
         URM2_dtype = {0: int, 1: int, 3: float}
 
-    URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
-                                    sep=",",
-                                    skiprows=1,
-                                    header=None,
-                                    dtype=URM_dtye,
-                                    engine='python')
+    if URM is not None:
+        URM_all_dataframe = URM
+    else:
+        URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
+                                        sep=",",
+                                        skiprows=1,
+                                        header=None,
+                                        dtype=URM_dtye,
+                                        engine='python')
 
     if URM_cols is not None:
-        URM_all_dataframe.columns = URM2_cols
+        URM_all_dataframe.columns = URM_cols
     else:
         URM_all_dataframe.columns = ["UserID", "ItemID", "others", "Data"]
         URM_all_dataframe = URM_all_dataframe.drop("others", axis=1)
         URM_all_dataframe["Data"] = URM_all_dataframe["Data"].replace({0: 1, 1: 0})
 
-    URM_all_dataframe2 = pd.read_csv(filepath_or_buffer=URM_path2,
-                                     dtype=URM2_dtype
-                                     )
-    URM_all_dataframe2 = URM_all_dataframe2[URM_all_dataframe2['Data'] != 0.01]
+    if URM2 is not None:
+        URM_all_dataframe2 = URM2
+    else:
+        URM_all_dataframe2 = pd.read_csv(filepath_or_buffer=URM_path2,
+                                         dtype=URM2_dtype)
 
     if URM2_cols is not None:
         URM_all_dataframe2.columns = URM2_cols
@@ -204,8 +208,12 @@ def split_train_validation_double(URM_path="../data/interactions_and_impressions
                                 (data_valid["UserID"].values, data_valid["ItemID"].values)))
     URM_valid2 = sps.csr_matrix((data_valid2["Data"].values,
                                  (data_valid2["UserID"].values, data_valid2["ItemID"].values)))
-    return URM_train, URM_train2, URM_valid, URM_valid2
-
+    if matrix_format == "csr":
+        return URM_train, URM_train2, URM_valid, URM_valid2
+    elif matrix_format=="df":
+        return URM_all_dataframe, URM_all_dataframe2
+    elif matrix_format == "total":
+        return URM_all_dataframe, URM_all_dataframe2,URM_train, URM_train2, URM_valid, URM_valid2
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False,
@@ -281,18 +289,21 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
 def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", ICM_path="../data_ICM_type.csv",
                            ICM_cols=None, URM_cols=None,
-                           ICM_dtype=None, URM_dtye=None, matrix_format="csr", ICM_vals_to_not_keep=None,
+                           ICM_dtype=None, URM_dtye=None, matrix_format="csr", URM=None, ICM_vals_to_not_keep=None,
                            URM_vals_to_not_keep=None, URM_values_to_replace=None, ICM_values_to_replace=None):
     if URM_dtye is None:
         URM_dtye = {0: int, 1: int, 2: str, 3: int}
     if ICM_dtype is None:
         ICM_dtype = {0: int, 1: int, 2: int}
-    URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
-                                    sep=",",
-                                    skiprows=1,
-                                    header=None,
-                                    dtype=URM_dtye,
-                                    engine='python')
+    if URM is not None:
+        URM_all_dataframe = URM
+    else:
+        URM_all_dataframe = pd.read_csv(filepath_or_buffer=URM_path,
+                                        sep=",",
+                                        skiprows=1,
+                                        header=None,
+                                        dtype=URM_dtye,
+                                        engine='python')
 
     if URM_cols is not None:
         URM_all_dataframe.columns = URM_cols
@@ -361,6 +372,10 @@ def load_URM_and_ICM_items(URM_path="../data/interactions_and_impressions.csv", 
     ICM_all.data = np.ones_like(ICM_all.data)
     if matrix_format == "csr":
         return URM_all, ICM_all
+    elif matrix_format == "ICM":
+        return URM_all_dataframe, ICM_all
+    elif matrix_format == "URM":
+        return URM_all, ICM_dataframe
     else:
         return URM_all_dataframe, ICM_dataframe
 
