@@ -49,7 +49,7 @@ def read_data_split_and_search():
         #Random,
         #TopPop,
         #P3alphaRecommender,
-        RP3betaRecommender,
+        #RP3betaRecommender,
         #ItemKNNCFRecommender,
         #UserKNNCFRecommender,
         MatrixFactorization_BPR_Cython,
@@ -70,16 +70,21 @@ def read_data_split_and_search():
     dirname = os.path.dirname(__file__)
     matrix_extended = os.path.join(dirname, "data/extended.csv")
 
-    matrix_path = os.path.join(dirname, "data/interactions_and_impressions_v2.csv")
+    matrix_path = os.path.join(dirname, "data/interactions_and_impressions.csv")
     ICM_path = os.path.join(dirname, "data/data_ICM_type.csv")
     ICM_path_length = os.path.join(dirname, "data/data_ICM_length.csv")
 
     replace = {0.01: -1, 0.5: 0, 0.8: 0, 0.2: 0}
-    URM_train_normal = Reader.read_train_csr_extended(matrix_path=matrix_path, stats=False, replace=replace)
+    URM_train_normal = Reader.read_train_csr(matrix_path=matrix_path,values_to_replace={0:0.3})
+    #URM_train_normal = Reader.load_URM(file_path=matrix_path)
 
     URM_train_last, URM_test = split_train_in_two_percentage_global_sample(URM_train_normal, 0.7)
     URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train_last, 0.7)
 
+    #-----NEW URM------
+    #URM_path2="../data/interactions_and_impressions_v4.csv"
+    #URM_train,URM_train2 ,URM_test,URM_valid2=Reader.split_train_validation_double(URM_path2=URM_path2)
+    #URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train2, 0.7)
 
     ########################
     #group_id=10 #con 2 sarebbe il 10 per cento ( cioè prende il 10 per cento dehgli user con meno intercation)
@@ -100,7 +105,7 @@ def read_data_split_and_search():
 
     from Utils.Evaluator import EvaluatorHoldout
 
-    cutoff_list = [5, 10, 20]
+    cutoff_list = [10]
     metric_to_optimize = "MAP"
     cutoff_to_optimize = 10
 
