@@ -2,6 +2,7 @@ from enum import Enum
 import numpy as np
 
 from Recommenders.FeatureCombinedImplicitALSRecommender import FeatureCombinedImplicitALSRecommender
+from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
 from Recommenders.RP3betaCBFRecommender import RP3betaCBFRecommender
 
 from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
@@ -17,6 +18,7 @@ import os
 import csv
 import pandas as pd
 
+from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender
 from Utils import Reader
 
 
@@ -32,9 +34,9 @@ class NameRecommender(Enum):
     HybridNorm = "HybridNorm"
     USER_ITEM = "USER_ITEM"
     ItemKNNCBF = "ItemKNNCBF"
-    RP3betaCBFRecommender = "RP3betaCBFRecommender"
+    RP3betaRecommender = "RP3betaRecommender"
     FeatureCombinedImplicitALSRecommender = "FeatureCombinedImplicitALSRecommender"
-
+    SLIMElasticNetRecommender="SLIMElasticNetRecommender"
 
 class Writer(object):
 
@@ -60,8 +62,7 @@ class Writer(object):
 
         if (self.NameRecommender.name == "SLIM_BPR"):
             self.Recommender = SLIM_BPR_Cython(URM_train=self.URM)
-            self.Recommender.fit(topK=self.topK, epochs=n_epochs, lambda_i=lambda1, lambda_j=lambda2,
-                                 learning_rate=learning_rate)
+            self.Recommender.fit(topK= 324, epochs=60,symmetric= True, sgd_mode='sgd', lambda_i= 0.00015835471887230872, lambda_j= 0.00048124133780920344, learning_rate=0.00011448518717453326, positive_threshold_BPR= 0.0)
         if (self.NameRecommender.name == "Hybrid"):
             self.Recommender = ITEMKNNCF_SLIM_BPR(URM_train=self.URM, URM_rewatches=URM_rewatches)
             self.Recommender.fit(topK=self.topK, n_epochs=n_epochs, lambda1=lambda1, lambda2=lambda2,
@@ -84,16 +85,15 @@ class Writer(object):
         if (self.NameRecommender.name == "ItemKNNCBF"):
             self.Recommender = ItemKNNCBFRecommender(URM_train=URM, ICM_train=stackedICM)
             self.Recommender.fit()
-        if self.NameRecommender.name == "RP3betaCBFRecommender":
-            self.Recommender = RP3betaCBFRecommender(
+        if self.NameRecommender.name == "RP3betaRecommender":
+            self.Recommender = RP3betaRecommender(
                 URM_train=URM,
-                ICM_train=ICM,
                 verbose=False
             )
-            self.Recommender.fit(topK=int(529.1628484087545),
-                                 alpha=0.45304737831676245,
-                                 beta=0.226647894170121,
-                                 implicit=False)
+            self.Recommender.fit(topK=680,
+                                 alpha=0.15,
+                                 beta=0.475,
+                                 implicit=True)
         if self.NameRecommender.name == "FeatureCombinedImplicitALSRecommender":
             self.Recommender = FeatureCombinedImplicitALSRecommender(
                 URM_train=URM,
@@ -112,6 +112,9 @@ class Writer(object):
                     'ICM': {"alpha": 50}
                 }
             )
+        if self.NameRecommender.name=="SLIMElasticNetRecommender":
+            self.Recommender=SLIMElasticNetRecommender(URM_train=URM,verbose=False)
+            self.Recommender.fit(topK= 910, l1_ratio= 0.00037629019065229705, alpha=0.9865662715416077)
 
     def makeSubmission(self):
         current_dir = os.path.abspath(os.path.dirname(__file__))
@@ -134,6 +137,33 @@ class Writer(object):
                 d.write(str(user_array[i]) + ", ")
                 #             if(self.NameRecommender.name!="Rankings"):
                 recommandations = self.Recommender.recommend(user_id_array=user_array[i], cutoff=10)
+                #               else:
+                #                    recommandations=self.Recommender.recomendation_ranking(user_id_array=user_array[i])
+                array = np.asarray(recommandations)
+                writer.writerow(array)
+
+
+    def makeSubmission2(recommender):
+        current_dir = os.path.abspath(os.path.dirname(__file__))
+        parent_dir = os.path.abspath(current_dir + "/../")
+        read_path = os.path.join(parent_dir, "data/data_target_users_test.csv")
+
+        with open(read_path, "r") as f:
+            dataFrame = pd.read_csv(f, skiprows=0)
+            dataFrame.columns = ["UserID"]
+            user_array = np.asarray(dataFrame["UserID"])
+
+        write_path = os.path.join(parent_dir, "Testing_Results/submission.csv")
+        print(user_array)
+        user_array = user_array.tolist()
+        with open(write_path, "w+") as d:
+            d.write("user_id,item_list\n")
+            writer = csv.writer(d, delimiter=' ')
+
+            for i in range(len(user_array)):
+                d.write(str(user_array[i]) + ", ")
+                #             if(self.NameRecommender.name!="Rankings"):
+                recommandations = recommender.recommend(user_id_array=user_array[i], cutoff=10)
                 #               else:
                 #                    recommandations=self.Recommender.recomendation_ranking(user_id_array=user_array[i])
                 array = np.asarray(recommandations)

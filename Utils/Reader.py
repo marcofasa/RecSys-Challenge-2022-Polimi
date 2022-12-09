@@ -537,7 +537,7 @@ def df_preprocess(df, saving=True, mode=0, threshold=0):
     list_to_check02 = set()
     list_to_check = []
     list_to_convert001 = []
-    list_to_convert1 = ()
+    list_to_convert1 = []
     cont = 0
     list_to_convert02 = []
     d = {}
