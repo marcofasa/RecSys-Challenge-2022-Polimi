@@ -551,14 +551,13 @@ def df_preprocess(df, saving=True, mode=0, threshold=0):
         if type(row[columns[2]]) == str:
             displayList = row[columns[2]].split(",")
             displayList = [eval(i) for i in displayList]
-        if mode < 13 and userid != row[columns[0]]:
-            userid = row[columns[0]]
+        if mode < 12 and userid != row[columns[0]]:
             list_to_convert = list_to_convert + list_to_convert001
             list_to_convert = list_to_convert + list_to_convert02
             list_to_convert001.clear()
             list_to_convert02.clear()
-        else:
-            userid = row[columns[0]]
+
+        userid = row[columns[0]]
 
         item = row[columns[1]]
         # At this point you have userid,item and a displaylist with all items displayed in background
@@ -733,7 +732,12 @@ def df_preprocess(df, saving=True, mode=0, threshold=0):
             if x not in d.keys():
                 d.update(count)
         more_than = {k: v for k, v in d.items() if v >= threshold}
+        list_to_convert=more_than+list_to_convert02
         list(more_than.keys())
+        cols = ["UserID", "ItemID", "Data"]
+        # list_to_convert = list(dict.fromkeys(list_to_convert))  # removing duplicates
+        del df
+        df = pd.DataFrame(list_to_convert, columns=cols)
 
     if saving:
         save(df, "out_" + str(mode))
