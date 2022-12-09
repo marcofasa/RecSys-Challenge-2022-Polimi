@@ -210,14 +210,15 @@ def split_train_validation_double(URM_path="../data/interactions_and_impressions
                                  (data_valid2["UserID"].values, data_valid2["ItemID"].values)))
     if matrix_format == "csr":
         return URM_train, URM_train2, URM_valid, URM_valid2
-    elif matrix_format=="df":
+    elif matrix_format == "df":
         return URM_all_dataframe, URM_all_dataframe2
     elif matrix_format == "total":
-        return URM_all_dataframe, URM_all_dataframe2,URM_train, URM_train2, URM_valid, URM_valid2
+        return URM_all_dataframe, URM_all_dataframe2, URM_train, URM_train2, URM_valid, URM_valid2
+
 
 def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                    stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None, saving=False,
-                   clean=False, values_to_replace=None):
+                   clean=False, values_to_replace=None, threshold=0):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -254,7 +255,7 @@ def read_train_csr(matrix_path="../data/interactions_and_impressions.csv", matri
 
     if preprocess > 0:
         print("Preprocessing with mode: " + str(preprocess))
-        df_preprocess(matrix_df, saving=saving, mode=preprocess)
+        df_preprocess(matrix_df, saving=saving, mode=preprocess, threshold=threshold)
 
     print(len(matrix_df))
 
@@ -472,7 +473,7 @@ def load_URM_and_ICM_users(URM_path="../data/interactions_and_impressions.csv", 
 
 def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.csv", matrix_format="csr",
                             stats=False, preprocess=0, display=False, switch=False, dictionary=None, column=None,
-                            saving=False, replace=None):
+                            saving=False, replace=None, threshold=0):
     n_items = 0
     matrix_df = pd.read_csv(filepath_or_buffer=matrix_path,
                             sep=",",
@@ -506,7 +507,7 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
 
     if preprocess > 0:
         print("Preprocessing with mode: " + str(preprocess))
-        df_preprocess(matrix_df, saving=saving, mode=preprocess)
+        df_preprocess(matrix_df, saving=saving, mode=preprocess, threshold=threshold)
 
     print(len(matrix_df))
 
@@ -530,15 +531,16 @@ def read_train_csr_extended(matrix_path="../data/interactions_and_impressions.cs
         return matrix.tocsc()
 
 
-def df_preprocess(df, saving=True, mode=0):
+def df_preprocess(df, saving=True, mode=0, threshold=0):
     list_to_convert = []
     list_to_check001 = set()
     list_to_check02 = set()
     list_to_check = []
     list_to_convert001 = []
+    list_to_convert1 = ()
     cont = 0
     list_to_convert02 = []
-
+    d = {}
     df = df.sort_values(by=['UserID', 'ItemID', 'Data'])
     userid = 0
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Passing through all dataset to gather infos..."):
@@ -549,7 +551,7 @@ def df_preprocess(df, saving=True, mode=0):
         if type(row[columns[2]]) == str:
             displayList = row[columns[2]].split(",")
             displayList = [eval(i) for i in displayList]
-        if mode < 10 and userid != row[columns[0]]:
+        if mode < 13 and userid != row[columns[0]]:
             userid = row[columns[0]]
             list_to_convert = list_to_convert + list_to_convert001
             list_to_convert = list_to_convert + list_to_convert02
@@ -652,11 +654,42 @@ def df_preprocess(df, saving=True, mode=0):
             for i in displayList:
                 if i != item:
                     list_to_convert001.append([userid, i, 0.01])
-        elif mode == 10:
+
+        elif mode == 10:  # v4-> also 0.1
             cont = cont + 1
             for i in displayList:
                 if i != item:
                     list_to_convert001.append([userid, i, None, 0.01])
+        elif mode == 11:
+            if row[columns[3]] == 1:
+                if [userid, item, 0.2] in list_to_convert02:
+                    # list_to_convert.remove([userid, item, 0.2])
+                    for _ in list(filter(lambda a: a == [userid, item, 0.2], list_to_convert02)):
+                        list_to_convert.append([userid, item, 0.5])
+                    list_to_convert.append([userid, item, 1])
+
+                    list_to_convert02 = list(filter(lambda a: a != [userid, item, 0.2], list_to_convert02))
+
+                elif [userid, item, 0.01] in list_to_convert001:
+                    # list_to_convert.remove([userid, item, 0.01])
+                    for _ in list(filter(lambda a: a == [userid, item, 0.01], list_to_convert001)):
+                        list_to_convert.append([userid, item, 0.05])
+                    list_to_convert.append([userid, item, 1])
+
+                    list_to_convert001 = list(filter(lambda a: a != [userid, item, 0.01], list_to_convert001))
+                else:
+                    list_to_convert.append([userid, item, 1])  # provare con 0.9
+            elif row[columns[3]] == 0:
+                list_to_convert02.append([userid, item, 0.2])
+            for i in displayList:
+                if i != item:
+                    list_to_convert001.append([userid, i, 0.01])
+        if mode == 12:
+            if row[columns[3]] == 1:
+                list_to_convert1.append((userid, item, 1))
+            else:
+                list_to_convert02.append((userid, item, 0.2))
+
     if mode < 3:
         df1 = pd.DataFrame(list_to_convert, columns=columns)
         df = df.append(df1)
@@ -678,7 +711,7 @@ def df_preprocess(df, saving=True, mode=0):
         cols = ["ItemID", "Rewatch"]
         c = Counter(list_to_convert).most_common()
         df = pd.DataFrame(c, columns=cols)
-    elif mode == 6 | mode == 7 | mode == 8 | mode == 9:
+    elif mode == 6 or mode == 7 or mode == 8 or mode == 9 or mode == 11:
         cols = ["UserID", "ItemID", "Data"]
         # list_to_convert = list(dict.fromkeys(list_to_convert))  # removing duplicates
         del df
@@ -689,6 +722,18 @@ def df_preprocess(df, saving=True, mode=0):
         df.columns = columns
         df = df.drop(["Interaction"], axis=1)
         df = df.sort_values(by=['UserID', 'ItemID', 'Data'])
+    elif mode == 12:
+        for i in range(len(list_to_convert1) - 1):
+            x = list_to_convert1[i]
+            c = 0
+            for j in range(i, len(list_to_convert1)):
+                if list_to_convert1[j] == list_to_convert1[i]:
+                    c = c + 1
+            count = dict({x: c})
+            if x not in d.keys():
+                d.update(count)
+        more_than = {k: v for k, v in d.items() if v >= threshold}
+        list(more_than.keys())
 
     if saving:
         save(df, "out_" + str(mode))
@@ -885,4 +930,4 @@ def load_ICM_rewatches_total(file_path="../data/rewatches/rewatches_total.csv", 
 
 
 if __name__ == '__main__':
-    read_train_csr(preprocess=8, saving=True)
+    read_train_csr(preprocess=12, saving=True,threshold=100)
