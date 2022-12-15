@@ -3,6 +3,7 @@ import numpy as np
 
 from Recommenders.FeatureCombinedImplicitALSRecommender import FeatureCombinedImplicitALSRecommender
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
+from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Recommenders.RP3betaCBFRecommender import RP3betaCBFRecommender
 
 from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
@@ -37,6 +38,7 @@ class NameRecommender(Enum):
     RP3betaRecommender = "RP3betaRecommender"
     FeatureCombinedImplicitALSRecommender = "FeatureCombinedImplicitALSRecommender"
     SLIMElasticNetRecommender="SLIMElasticNetRecommender"
+    IALS="IALS"
 
 class Writer(object):
 
@@ -115,7 +117,9 @@ class Writer(object):
         if self.NameRecommender.name=="SLIMElasticNetRecommender":
             self.Recommender=SLIMElasticNetRecommender(URM_train=URM,verbose=False)
             self.Recommender.fit(topK= 910, l1_ratio= 0.00037629019065229705, alpha=0.9865662715416077)
-
+        if self.NameRecommender.name=="IALS":
+            self.Recommender=IALSRecommender(URM)
+            self.Recommender.fit( num_factors= 77, epochs= 115, confidence_scaling= 'linear', alpha=  3.951833188581218, epsilon= 1.1320191944038327, reg= 4.746687709282205e-05)
     def makeSubmission(self):
         current_dir = os.path.abspath(os.path.dirname(__file__))
         parent_dir = os.path.abspath(current_dir + "/../")

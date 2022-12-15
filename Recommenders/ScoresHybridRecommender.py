@@ -1,5 +1,5 @@
 from Recommenders.BaseRecommender import BaseRecommender
-
+import scipy.sparse as sps
 class ScoresHybridRecommender(BaseRecommender):
     """ ScoresHybridRecommender
     Hybrid of two prediction scores R = R1*alpha + R2*(1-alpha)
