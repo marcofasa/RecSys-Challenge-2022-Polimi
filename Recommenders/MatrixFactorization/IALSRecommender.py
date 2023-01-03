@@ -36,17 +36,17 @@ class IALSRecommender(BaseMatrixFactorizationRecommender, Incremental_Training_E
 
     AVAILABLE_CONFIDENCE_SCALING = ["linear", "log"]
 
-    def fit(self, epochs = 5,
-            num_factors = 160,
+    def fit(self, epochs = 115,
+            num_factors = 77,
             confidence_scaling = "linear",
-            alpha =0.0013577420064471947,
-            epsilon =  0.05043459507407661,
-            reg = 0.00011016953541604591,
+            alpha =3.951833188581218,
+            epsilon =  1.1320191944038327,
+            reg = 4.746687709282205e-05,
             init_mean=0.0,
             init_std=0.1,
             **earlystopping_kwargs):
         """
-
+'num_factors': 77, 'epochs': 115, 'confidence_scaling': 'linear', 'alpha': 3.951833188581218, 'epsilon': 1.1320191944038327, 'reg': 4.746687709282205e-05
         :param epochs:
         :param num_factors:
         :param confidence_scaling: supported scaling modes for the observed values: 'linear' or 'log'

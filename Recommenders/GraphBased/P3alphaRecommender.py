@@ -32,7 +32,7 @@ class P3alphaRecommender(BaseItemSimilarityMatrixRecommender):
                                                                             self.min_rating, self.topK, self.implicit,
                                                                             self.normalize_similarity)
 
-    def fit(self, topK=51, alpha=3.0945538965957946e-05, min_rating=0, implicit=False, normalize_similarity=False):
+    def fit(self, topK=564, alpha=0.18769516845528106, min_rating=0, implicit=False, normalize_similarity=True):
 
         self.topK = topK
         self.alpha = alpha

@@ -59,17 +59,16 @@ class SLIM_BPR_Cython(BaseItemSimilarityMatrixRecommender, Incremental_Training_
         assert free_mem_threshold>=0.0 and free_mem_threshold<=1.0, "SLIM_BPR_Recommender: free_mem_threshold must be between 0.0 and 1.0, provided was '{}'".format(free_mem_threshold)
         self.free_mem_threshold = free_mem_threshold
 
-    def fit(self, epochs=105,
-            positive_threshold_BPR = 0.5,
+    def fit(self, epochs=420,
+            positive_threshold_BPR = 0.0,
             train_with_sparse_weights = None,
             allow_train_with_sparse_weights = True,
             symmetric = True,
             random_seed = None,
-            lambda_i =      3.431240611657406e-05, lambda_j =  0.002719668980160838, learning_rate =  0.0037344167397627415, topK =  443,
-            sgd_mode='adam', gamma=0, beta_1=0, beta_2=0,
+            lambda_i =      0.0037690758995090824, lambda_j =  4.807498568095623e-05, learning_rate =  0.005109400738046138, topK =  749,
+            sgd_mode='adagrad', gamma=0, beta_1=0, beta_2=0,
             **earlystopping_kwargs):
-
-
+#'topK': 749, 'epochs': 420, 'symmetric': True, 'sgd_mode': 'adagrad', 'lambda_i': 0.0037690758995090824, 'lambda_j': 4.807498568095623e-05, 'learning_rate': 0.005109400738046138, 'positive_threshold_BPR': 0.0
         # Import compiled module
         from Recommenders.SLIM.Cython.SLIM_BPR_Cython_Epoch import SLIM_BPR_Cython_Epoch
 

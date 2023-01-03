@@ -722,18 +722,9 @@ def df_preprocess(df, saving=True, mode=0, threshold=0):
         df = df.drop(["Interaction"], axis=1)
         df = df.sort_values(by=['UserID', 'ItemID', 'Data'])
     elif mode == 12:
-        for i in range(len(list_to_convert1) - 1):
-            x = list_to_convert1[i]
-            c = 0
-            for j in range(i, len(list_to_convert1)):
-                if list_to_convert1[j] == list_to_convert1[i]:
-                    c = c + 1
-            count = dict({x: c})
-            if x not in d.keys():
-                d.update(count)
-        more_than = {k: v for k, v in d.items() if v >= threshold}
-        list_to_convert=more_than+list_to_convert02
-        list(more_than.keys())
+
+        more_than = list({k: v for k, v in Counter(list_to_convert1).items() if v >= threshold}.keys())
+        list_to_convert = more_than + list_to_convert02
         cols = ["UserID", "ItemID", "Data"]
         # list_to_convert = list(dict.fromkeys(list_to_convert))  # removing duplicates
         del df
@@ -934,4 +925,4 @@ def load_ICM_rewatches_total(file_path="../data/rewatches/rewatches_total.csv", 
 
 
 if __name__ == '__main__':
-    read_train_csr(preprocess=12, saving=True,threshold=100)
+    read_train_csr(preprocess=12, saving=True, threshold=10)
